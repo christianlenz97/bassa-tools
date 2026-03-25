@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>BASSA Dach - Tools</title>
+<meta name="theme-color" content="#f05a28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BASSA Tools">
+<link rel="apple-touch-icon" href="shared/icon-192.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { touch-action: manipulation; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    background: #fff;
+    padding: 24px 20px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+    text-align: center;
+    border-bottom: 3px solid #f05a28;
+  }
+  .header img {
+    max-width: 280px;
+    width: 100%;
+    height: auto;
+  }
+  .header h1 {
+    font-size: 14px;
+    color: #888;
+    font-weight: 600;
+    margin-top: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .tools {
+    flex: 1;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .tool-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: #222;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .tool-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  }
+  .tool-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f05a28;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+  .tool-info h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .tool-info p {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.3;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: #bbb;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <img src="shared/logo.png" alt="BASSA Dach">
+    <h1>Interne Werkzeuge</h1>
+  </div>
+
+  <div class="tools">
+    <a href="fotodoku/" class="tool-card">
+      <div class="tool-icon">&#128247;</div>
+      <div class="tool-info">
+        <h2>Fotodokumentation</h2>
+        <p>Fotos hochladen, A4-Seiten erstellen, als PDF exportieren</p>
+      </div>
+    </a>
+
+    <!-- Platzhalter fuer zukuenftige Tools -->
+    <!--
+    <a href="neues-tool/" class="tool-card">
+      <div class="tool-icon">&#128295;</div>
+      <div class="tool-info">
+        <h2>Neues Tool</h2>
+        <p>Beschreibung</p>
+      </div>
+    </a>
+    -->
+  </div>
+
+  <div class="footer">BASSA Dach GmbH &mdash; Interne Tools</div>
+</body>
+</html>

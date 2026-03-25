@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Fotodokumentation</title>
+
+<!-- PWA -->
+<meta name="theme-color" content="#f05a28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fotodokumentation">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="manifest.json">
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-row-top">
+      <button class="btn primary" id="pickBtn" type="button">BILDER AUSWÄHLEN</button>
+      <input class="hidden-input" id="fileInput" type="file" accept="image/*" multiple />
+      <select class="select" id="layoutMode">
+        <option value="cover">MIT TITELBILD</option>
+        <option value="grid" selected>OHNE TITELBILD</option>
+      </select>
+      <button class="btn danger" id="clearBtn" type="button">ALLES LÖSCHEN</button>
+    </div>
+    <div class="toolbar-row-fields">
+      <input class="input" id="docTitle" type="text" value="FOTODOKUMENTATION" />
+      <input class="input" id="customerName" type="text" placeholder="KUNDENNAME" />
+      <input class="input" id="objectName" type="text" placeholder="OBJEKT / ADRESSE" />
+      <label class="datewrap"><span class="datelabel">DATUM</span><input class="dateinput" id="docDate" type="date" /></label>
+    </div>
+    <button class="btn pdf-btn" id="pdfBtn" type="button">ALS PDF SPEICHERN</button>
+  </div>
+
+  <div class="wrap">
+    <div class="dropzone" id="dropzone">
+      BILDER HIER REINZIEHEN ODER OBEN AUF „BILDER AUSWÄHLEN" KLICKEN
+    </div>
+    <div class="thumbbar" id="thumbbar"></div>
+    <div class="pages" id="pages"></div>
+  </div>
+
+<script src="app.js"></script>
+<script src="pdf-export.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(err) {
+    console.log('SW registration failed:', err);
+  });
+}
+</script>
+</body>
+</html>
