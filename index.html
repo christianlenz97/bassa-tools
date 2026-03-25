@@ -72,6 +72,10 @@
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="2"/><circle cx="6.5" cy="6.5" r="1.5"/><path d="M16 11l-4-4-8 8"/></svg>
       Fotodokumentation
     </a>
+    <a class="nav-item" data-section="mitteilung">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a1 1 0 011-1h12a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><polyline points="2 4 9 10 16 4"/></svg>
+      Durchführungsmitteilung
+    </a>
   </nav>
   <div class="sidebar-footer">
     <button class="nav-item nav-logout" id="btnLogout">
@@ -119,6 +123,11 @@
         </button>
         <button class="btn-fab" id="btnFotoExport">PDF EXPORT</button>
       </div>
+    </div>
+    <!-- Mitteilung context -->
+    <div class="topbar-ctx" id="ctxMitteilung" style="display:none;">
+      <button class="btn-back" id="btnBackMitteilung">&#8592; Zurück</button>
+      <div class="topbar-title">Durchführungsmitteilung</div>
     </div>
   </div>
 
@@ -216,6 +225,11 @@
   <!-- ===== FOTODOKU VIEW (iframe) ===== -->
   <div id="viewFotodoku" class="view" style="display:none;">
     <iframe id="fotodokuFrame" class="embed-frame" src="about:blank"></iframe>
+  </div>
+
+  <!-- ===== MITTEILUNG VIEW (iframe) ===== -->
+  <div id="viewMitteilung" class="view" style="display:none;">
+    <iframe id="mitteilungFrame" class="embed-frame" src="about:blank"></iframe>
   </div>
 
 </main>

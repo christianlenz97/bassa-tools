@@ -118,6 +118,7 @@ function setTopbarContext(ctx) {
   document.getElementById('ctxDashboard').style.display = ctx === 'dashboard' ? '' : 'none';
   document.getElementById('ctxDetail').style.display = ctx === 'detail' ? '' : 'none';
   document.getElementById('ctxFotodoku').style.display = ctx === 'fotodoku' ? '' : 'none';
+  document.getElementById('ctxMitteilung').style.display = ctx === 'mitteilung' ? '' : 'none';
   var burger = document.getElementById('btnBurger');
   if (ctx === 'dashboard') {
     burger.classList.remove('hide-mobile');
@@ -137,27 +138,35 @@ function switchSection(section) {
   var viewDash = document.getElementById('viewDashboard');
   var viewDetail = document.getElementById('viewDetail');
   var viewFoto = document.getElementById('viewFotodoku');
+  var viewMitt = document.getElementById('viewMitteilung');
+
+  viewDash.style.display = 'none';
+  viewDetail.style.display = 'none';
+  viewFoto.style.display = 'none';
+  viewMitt.style.display = 'none';
 
   if (section === 'checkliste') {
-    viewFoto.style.display = 'none';
     if (currentProjectId) {
-      viewDash.style.display = 'none';
       viewDetail.style.display = '';
       setTopbarContext('detail');
     } else {
       viewDash.style.display = '';
-      viewDetail.style.display = 'none';
       setTopbarContext('dashboard');
       loadDashboard();
     }
   } else if (section === 'fotodoku') {
-    viewDash.style.display = 'none';
-    viewDetail.style.display = 'none';
     viewFoto.style.display = '';
     setTopbarContext('fotodoku');
     var frame = document.getElementById('fotodokuFrame');
     if (frame.src === 'about:blank' || !frame.src.includes('fotodoku')) {
       frame.src = './fotodoku/';
+    }
+  } else if (section === 'mitteilung') {
+    viewMitt.style.display = '';
+    setTopbarContext('mitteilung');
+    var mFrame = document.getElementById('mitteilungFrame');
+    if (mFrame.src === 'about:blank' || !mFrame.src.includes('mitteilung')) {
+      mFrame.src = './mitteilung/';
     }
   }
 }
@@ -178,6 +187,7 @@ function showDashboard() {
   document.getElementById('viewDashboard').style.display = '';
   document.getElementById('viewDetail').style.display = 'none';
   document.getElementById('viewFotodoku').style.display = 'none';
+  document.getElementById('viewMitteilung').style.display = 'none';
   setTopbarContext('dashboard');
   document.querySelectorAll('.nav-item[data-section]').forEach(function(el) {
     el.classList.toggle('active', el.dataset.section === 'checkliste');
@@ -192,6 +202,7 @@ function showDetail(id) {
   document.getElementById('viewDashboard').style.display = 'none';
   document.getElementById('viewDetail').style.display = '';
   document.getElementById('viewFotodoku').style.display = 'none';
+  document.getElementById('viewMitteilung').style.display = 'none';
   setTopbarContext('detail');
   closeSidebar();
   loadProject(id);
@@ -695,6 +706,7 @@ document.getElementById('btnNewProject').addEventListener('click', createNewProj
 document.getElementById('btnNewEmpty').addEventListener('click', createNewProject);
 document.getElementById('btnBack').addEventListener('click', showDashboard);
 document.getElementById('btnBackFoto').addEventListener('click', showDashboard);
+document.getElementById('btnBackMitteilung').addEventListener('click', showDashboard);
 document.getElementById('btnDelete').addEventListener('click', deleteProject);
 document.getElementById('btnExport').addEventListener('click', exportProject);
 document.getElementById('btnCopy').addEventListener('click', copySummary);

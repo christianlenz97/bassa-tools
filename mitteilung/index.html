@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Durchführungsmitteilung – BASSA Tools</title>
+  <meta property="og:title" content="BASSA Tools – Durchführungsmitteilung">
+  <meta property="og:description" content="Internes Werkzeug der BASSA Dach GmbH">
+  <meta property="og:image" content="../shared/icon-512.png">
+  <link rel="icon" href="../shared/icon-192.png">
+  <link rel="apple-touch-icon" href="../shared/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- ===== LEFT: Form ===== -->
+  <div class="panel form-panel">
+    <h1>Durchführungsmitteilung</h1>
+    <p class="sub">Angebot / Auftrag hochladen – Felder werden automatisch erkannt.<br>Oder manuell ausfüllen.</p>
+
+    <div id="dropzone" class="dropzone">
+      <strong>📄 Datei hierher ziehen</strong>
+      <span class="small">PDF oder Bild (JPG, PNG) – Text wird automatisch erkannt</span>
+      <div class="upload-row">
+        <label class="upload-btn" for="fileInput">Datei auswählen</label>
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.webp,.tiff,.tif" hidden>
+      </div>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="field">
+      <label for="kunde">1. Kunde (Name &amp; Adresse)</label>
+      <textarea id="kunde" rows="3" placeholder="Mustermann GmbH&#10;Musterstraße 1&#10;1234 Musterstadt"></textarea>
+    </div>
+    <div class="field">
+      <label for="betreff">2. Betreff</label>
+      <textarea id="betreff" rows="2" class="betreff-input" placeholder="Durchführung der beauftragten Arbeiten&#10;Preisvorteil …"></textarea>
+    </div>
+    <div class="field">
+      <label for="objekt">3. Bauvorhaben</label>
+      <input id="objekt" placeholder="z.B. Dachsanierung Musterstraße 1">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="nummer">4. Angebots-/Auftragsnr.</label>
+        <input id="nummer" placeholder="ANG-2025-0042">
+      </div>
+      <div class="field">
+        <label for="datum">5. Durchführungsdatum</label>
+        <input id="datum" placeholder="TT.MM.JJJJ">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" onclick="doPrint()">🖨 Als PDF drucken</button>
+      <button class="secondary" onclick="doDemo()">Demo-Daten</button>
+      <button class="ghost" onclick="doReset()">Zurücksetzen</button>
+    </div>
+
+    <div class="hint">
+      <strong>Tipp:</strong> Ziehen Sie ein Angebot oder eine Auftragsbestätigung in die Dropzone. Felder wie Kunde, Betreff, Bauvorhaben und Nummer werden automatisch erkannt.
+    </div>
+  </div>
+
+  <!-- ===== RIGHT: Letter Preview ===== -->
+  <div class="panel preview-panel">
+    <div class="preview-shell">
+      <div class="page">
+        <img class="stationery" src="assets/stationery.png" alt="">
+        <div class="doc">
+          <div class="meta-top">
+            <div class="recipient" id="preview-kunde">[Kunde]</div>
+            <div class="datebox">
+              Datum: <span id="preview-datum-top">[Datum]</span>
+            </div>
+          </div>
+          <div class="subject-block">
+            <div class="subject-label">Betreff:</div>
+            <div class="betreff" id="preview-betreff">Durchführung der beauftragten Arbeiten</div>
+          </div>
+          <div class="content">
+            <p>Sehr geehrte Damen und Herren,</p>
+            <p>
+              Ihre Arbeiten wie beauftragt werden am
+              <strong id="preview-datum">[Datum]</strong>
+              laut Angebot/Auftrag
+              <strong id="preview-nummer">[Nr]</strong>
+              beim Bauvorhaben
+              <strong id="preview-objekt">[Bauvorhaben]</strong>
+              durchgeführt.
+            </p>
+            <p>Wir bitten um Zugang zur Baustelle ab 7:00 Uhr und freien Zugang zu den relevanten Arbeitsbereichen.</p>
+            <p>Bei Rückfragen stehen wir Ihnen gerne zur Verfügung.</p>
+            <div class="signature">
+              <p>Mit freundlichen Grüßen</p>
+              <p><strong>BASSA Dach GmbH</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
