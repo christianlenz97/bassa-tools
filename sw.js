@@ -1,4 +1,4 @@
-var CACHE_NAME = 'checkliste-v14';
+var CACHE_NAME = 'bassa-v1';
 var URLS_TO_CACHE = [
   './',
   'index.html',
@@ -10,8 +10,8 @@ var URLS_TO_CACHE = [
   'assets/apple-touch-icon.png',
   'assets/favicon-32.png',
   'assets/add-image.png',
-  '../shared/datepicker.js',
-  '../shared/datepicker.css',
+  'shared/datepicker.js',
+  'shared/datepicker.css',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 

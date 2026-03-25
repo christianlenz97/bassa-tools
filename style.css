@@ -219,6 +219,9 @@ body {
   display: inline-flex;
   align-items: center;
 }
+@media (min-width: 769px) {
+  .btn-back-fotodoku { display: none; }
+}
 .btn-fab-danger {
   background: #fef2f2 !important;
   color: #dc2626 !important;

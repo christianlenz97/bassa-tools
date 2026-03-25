@@ -117,7 +117,7 @@ function switchSection(section) {
     setTopbarContext('fotodoku');
     var frame = document.getElementById('fotodokuFrame');
     if (frame.src === 'about:blank' || !frame.src.includes('fotodoku')) {
-      frame.src = '../fotodoku/';
+      frame.src = './fotodoku/';
     }
   }
 }
