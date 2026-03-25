@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>BASSA Baustellen-Checkliste</title>
+<style>
+  :root{
+    --orange:#e85d0c;
+    --dark:#2f343a;
+    --mid:#69707a;
+    --light:#f5f6f8;
+    --line:#d9dde3;
+    --ok:#178a45;
+    --warn:#c24817;
+    --card:#ffffff;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#f7f8fa 0%,#eef1f5 100%);
+    color:var(--dark);
+  }
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:18px 14px 40px;
+  }
+  .hero{
+    background:linear-gradient(135deg,var(--dark) 0%,#434a53 100%);
+    color:#fff;
+    border-radius:24px;
+    padding:22px 18px;
+    box-shadow:var(--shadow);
+    margin-bottom:16px;
+  }
+  .hero h1{
+    margin:0 0 8px;
+    font-size:clamp(24px,4vw,38px);
+    line-height:1.05;
+    letter-spacing:.2px;
+  }
+  .hero p{
+    margin:0;
+    color:rgba(255,255,255,.88);
+    font-size:15px;
+  }
+  .top-actions{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+    margin:14px 0 18px;
+  }
+  @media (max-width:900px){
+    .top-actions{grid-template-columns:repeat(2,1fr)}
+  }
+  .btn{
+    appearance:none;
+    border:none;
+    border-radius:14px;
+    padding:14px 14px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--orange); color:#fff;}
+  .btn-dark{background:var(--dark); color:#fff;}
+  .btn-light{background:#fff; color:var(--dark); border:1px solid var(--line);}
+  .btn-ok{background:var(--ok); color:#fff;}
+  .grid{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:16px;
+  }
+  @media (max-width:980px){
+    .grid{grid-template-columns:1fr}
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    border:1px solid rgba(0,0,0,.03);
+  }
+  .section-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .section-title h2{
+    margin:0;
+    font-size:19px;
+  }
+  .badge{
+    background:#fff3ec;
+    color:var(--warn);
+    padding:7px 11px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.3px;
+  }
+  .sub{
+    color:var(--mid);
+    font-size:13px;
+    margin-top:-4px;
+    margin-bottom:12px;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+  @media (max-width:760px){ .form-grid{grid-template-columns:1fr} }
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field.full{grid-column:1 / -1}
+  label{
+    font-size:13px;
+    color:var(--mid);
+    font-weight:700;
+  }
+  input[type=text], input[type=date], select, textarea{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:14px 14px;
+    font-size:16px;
+    background:#fff;
+    color:var(--dark);
+    outline:none;
+  }
+  textarea{min-height:110px; resize:vertical}
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--orange);
+    box-shadow:0 0 0 4px rgba(232,93,12,.12);
+  }
+  .check-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  @media (max-width:760px){ .check-grid{grid-template-columns:1fr} }
+  .check-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px;
+    background:#fafbfc;
+    border:1px solid var(--line);
+    border-radius:16px;
+  }
+  .check-item input[type=checkbox]{
+    margin-top:2px;
+    transform:scale(1.25);
+    accent-color:var(--orange);
+  }
+  .check-item strong{
+    display:block;
+    margin-bottom:2px;
+    font-size:15px;
+  }
+  .check-item span{
+    color:var(--mid);
+    font-size:13px;
+    line-height:1.35;
+  }
+  .progress{
+    height:14px;
+    background:#edf0f4;
+    border-radius:999px;
+    overflow:hidden;
+    margin:10px 0 8px;
+  }
+  .progress-bar{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--orange),#ff9b4a);
+    transition:width .25s ease;
+  }
+  .progress-text{
+    font-size:14px;
+    font-weight:800;
+    color:var(--dark);
+  }
+  .summary{
+    background:#fafafa;
+    border:1px dashed var(--line);
+    border-radius:16px;
+    padding:14px;
+    white-space:pre-wrap;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .footer-note{
+    text-align:center;
+    color:var(--mid);
+    font-size:12px;
+    margin-top:14px;
+  }
+  .mini-actions{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:10px;
+  }
+  .pill{
+    display:inline-block;
+    font-size:12px;
+    font-weight:800;
+    padding:5px 8px;
+    border-radius:999px;
+    background:#eef1f5;
+    color:var(--dark);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>BASSA BAUSTELLEN-CHECKLISTE</h1>
+    <p>Für iPad, Handy und PC – direkt pro Baustelle im Ordner <strong>01_PLAN</strong> oder <strong>PLÄNE</strong> ablegen und vor Materialbestellung sauber ausfüllen.</p>
+  </div>
+
+  <div class="top-actions">
+    <button class="btn btn-primary" onclick="saveData()">SPEICHERN</button>
+    <button class="btn btn-dark" onclick="copySummary()">ZUSAMMENFASSUNG KOPIEREN</button>
+    <button class="btn btn-light" onclick="exportData()">EXPORT</button>
+    <button class="btn btn-light" onclick="document.getElementById('importFile').click()">IMPORT</button>
+    <button class="btn btn-ok" onclick="window.print()">DRUCKEN / PDF</button>
+    <button class="btn btn-light" onclick="resetAll()">ALLES LÖSCHEN</button>
+    <input id="importFile" type="file" accept=".json" style="display:none" />
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="section-title">
+        <h2>Baustellen-Stammdaten</h2>
+        <span class="badge">CHEF-CHECK</span>
+      </div>
+      <div class="sub">Hier trägst du die Grunddaten und alle wichtigen Infos zur Ausführung ein.</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="projekt">Baustelle / Projekt</label>
+          <input id="projekt" type="text" placeholder="z. B. Schönwetter-Bau" />
+        </div>
+        <div class="field">
+          <label for="kunde">Kunde / Bauherr</label>
+          <input id="kunde" type="text" placeholder="Name / Firma" />
+        </div>
+        <div class="field">
+          <label for="adresse">Baustellenadresse</label>
+          <input id="adresse" type="text" placeholder="Adresse" />
+        </div>
+        <div class="field">
+          <label for="ansprechperson">Ansprechperson vor Ort</label>
+          <input id="ansprechperson" type="text" placeholder="Name" />
+        </div>
+        <div class="field">
+          <label for="telefon">Telefon Ansprechpartner</label>
+          <input id="telefon" type="text" placeholder="Telefonnummer" />
+        </div>
+        <div class="field">
+          <label for="beginn">Beginn für uns als Dachdecker</label>
+          <input id="beginn" type="date" />
+        </div>
+        <div class="field">
+          <label for="geruest">Gerüst</label>
+          <select id="geruest">
+            <option value="">Bitte wählen</option>
+            <option>Ja, steht bereit</option>
+            <option>Ja, wird noch gestellt</option>
+            <option>Nein, wir müssen organisieren</option>
+            <option>Nicht erforderlich</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pv">PV-Anlage</label>
+          <select id="pv">
+            <option value="">Bitte wählen</option>
+            <option>Nein</option>
+            <option>Ja, Bestand</option>
+            <option>Ja, kommt neu</option>
+            <option>Unklar / abklären</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="spenglereiFarbe">Farbe Spenglerei</label>
+          <input id="spenglereiFarbe" type="text" placeholder="z. B. Anthrazit, RAL, PREFA Farbe" />
+        </div>
+        <div class="field">
+          <label for="spenglereiMaterial">Material Spenglerei</label>
+          <input id="spenglereiMaterial" type="text" placeholder="z. B. Alu, Rheinzink, Kupfer, beschichtet" />
+        </div>
+        <div class="field full">
+          <label for="eindeckung">Eindeckung / Dachaufbau</label>
+          <input id="eindeckung" type="text" placeholder="z. B. Ziegel, Blechdach, Foliendach, Sandwichpaneel ..." />
+        </div>
+        <div class="field full">
+          <label for="zubehoer">Zubehör / Zusatzteile</label>
+          <textarea id="zubehoer" placeholder="z. B. WC-Entlüfter Set, Schneefang, Dachhaken, Lüfter, Durchgänge, Attika, Absturzsicherung ..."></textarea>
+        </div>
+        <div class="field full">
+          <label for="notiz">Interne Notizen</label>
+          <textarea id="notiz" placeholder="Sonderwünsche, Lieferzeiten, Rückfragen, Besonderheiten auf der Baustelle ..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h2>Fortschritt</h2>
+        <span class="pill" id="statusPill">OFFEN</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-text" id="progressText">0 % erledigt</div>
+
+      <div style="height:12px"></div>
+      <div class="section-title">
+        <h2>Pflicht-Checkliste</h2>
+      </div>
+      <div class="check-grid" id="checklist">
+        
+        <label class="check-item"><input type="checkbox" data-label="Auftrag vorhanden"><div><strong>Auftrag vorhanden</strong><span>Beauftragung sauber abgelegt</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Pläne vorhanden"><div><strong>Pläne vorhanden</strong><span>Planunterlagen / Skizzen liegen vor</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Farbe geklärt"><div><strong>Farbe geklärt</strong><span>Farbe Spenglerei bestätigt</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Material geklärt"><div><strong>Material geklärt</strong><span>Material Spenglerei bestätigt</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Eindeckung geklärt"><div><strong>Eindeckung geklärt</strong><span>Dachdeckung / Aufbau fixiert</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Zubehör geklärt"><div><strong>Zubehör geklärt</strong><span>Alle Zusatzteile abgestimmt</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="PV abgeklärt"><div><strong>PV abgeklärt</strong><span>Bestand / Neu / Einfluss auf Ausführung</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Beginn geklärt"><div><strong>Beginn geklärt</strong><span>Starttermin für Dachdecker fix</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Gerüst geklärt"><div><strong>Gerüst geklärt</strong><span>Steht bereit oder organisiert</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Ansprechperson geklärt"><div><strong>Ansprechperson geklärt</strong><span>Kontakt während Ausführung fix</span></div></label>
+        <label class="check-item"><input type="checkbox" data-label="Material bestellbereit"><div><strong>Material bestellbereit</strong><span>Alles vollständig für Bestellung vorhanden</span></div></label>
+      </div>
+
+      <div class="mini-actions">
+        <button class="btn btn-dark" onclick="checkAll()">ALLES ABHAKEN</button>
+        <button class="btn btn-light" onclick="uncheckAll()">ABHAKEN LÖSCHEN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="section-title">
+      <h2>Automatische Baustellen-Zusammenfassung</h2>
+      <span class="badge">FÜR MAIL / INTERN</span>
+    </div>
+    <div class="sub">Praktisch zum schnellen Kopieren in Mail, WhatsApp oder internen Baustellen-Ordner.</div>
+    <div class="summary" id="summaryBox">Noch keine Daten eingetragen.</div>
+  </div>
+
+  <div class="footer-note">
+    Lokal gespeichert im Browser des Geräts. Für jede Baustelle ideal als eigene Datei im Ordner ablegen und bei Bedarf per EXPORT sichern.
+  </div>
+</div>
+
+<script>
+const fields = [
+  "projekt","kunde","adresse","ansprechperson","telefon","beginn",
+  "geruest","pv","spenglereiFarbe","spenglereiMaterial","eindeckung",
+  "zubehoer","notiz"
+];
+const STORAGE_KEY = "bassa_baustellen_checkliste_v1";
+
+function getChecklistStates(){
+  return [...document.querySelectorAll('#checklist input[type="checkbox"]')].map(cb => ({
+    label: cb.dataset.label,
+    checked: cb.checked
+  }));
+}
+
+function collectData(){
+  const data = {};
+  fields.forEach(id => data[id] = document.getElementById(id).value);
+  data.checklist = getChecklistStates();
+  return data;
+}
+
+function fillData(data){
+  fields.forEach(id => {
+    if(document.getElementById(id) && data[id] !== undefined){
+      document.getElementById(id).value = data[id];
+    }
+  });
+  if(Array.isArray(data.checklist)){
+    const boxes = [...document.querySelectorAll('#checklist input[type="checkbox"]')];
+    boxes.forEach(box => {
+      const found = data.checklist.find(x => x.label === box.dataset.label);
+      box.checked = !!(found && found.checked);
+    });
+  }
+  updateAll();
+}
+
+function saveData(showMsg=true){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
+  updateAll();
+  if(showMsg) alert("Checkliste gespeichert.");
+}
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) { updateAll(); return; }
+  try{
+    fillData(JSON.parse(raw));
+  }catch(e){
+    updateAll();
+  }
+}
+
+function updateProgress(){
+  const boxes = [...document.querySelectorAll('#checklist input[type="checkbox"]')];
+  const total = boxes.length;
+  const done = boxes.filter(b => b.checked).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = pct + " % erledigt";
+  const pill = document.getElementById('statusPill');
+  if(pct === 100){
+    pill.textContent = "BESTELLBEREIT";
+    pill.style.background = "#e8f6ee";
+    pill.style.color = "#178a45";
+  }else if(pct >= 50){
+    pill.textContent = "IN ARBEIT";
+    pill.style.background = "#fff3ec";
+    pill.style.color = "#c24817";
+  }else{
+    pill.textContent = "OFFEN";
+    pill.style.background = "#eef1f5";
+    pill.style.color = "#2f343a";
+  }
+}
+
+function valueOrDash(v){ return v && String(v).trim() ? String(v).trim() : "-"; }
+
+function generateSummary(){
+  const d = collectData();
+  const offene = d.checklist.filter(x => !x.checked).map(x => "• " + x.label);
+  const txt = 
+`BAUSTELLEN-CHECKLISTE
+
+Baustelle: ${valueOrDash(d.projekt)}
+Kunde / Bauherr: ${valueOrDash(d.kunde)}
+Adresse: ${valueOrDash(d.adresse)}
+
+Ansprechperson: ${valueOrDash(d.ansprechperson)}
+Telefon: ${valueOrDash(d.telefon)}
+Beginn Dachdecker: ${valueOrDash(d.beginn)}
+Gerüst: ${valueOrDash(d.geruest)}
+PV-Anlage: ${valueOrDash(d.pv)}
+
+Farbe Spenglerei: ${valueOrDash(d.spenglereiFarbe)}
+Material Spenglerei: ${valueOrDash(d.spenglereiMaterial)}
+Eindeckung / Dachaufbau: ${valueOrDash(d.eindeckung)}
+Zubehör / Zusatzteile: ${valueOrDash(d.zubehoer)}
+Interne Notizen: ${valueOrDash(d.notiz)}
+
+OFFENE PUNKTE:
+${offene.length ? offene.join("\n") : "• Keine offenen Punkte – Material bestellbereit."}`;
+  document.getElementById('summaryBox').textContent = txt;
+  return txt;
+}
+
+function updateAll(){
+  updateProgress();
+  generateSummary();
+}
+
+function exportData(){
+  const data = collectData();
+  const project = (data.projekt || "baustelle").replace(/[^\wäöüÄÖÜß\-]+/g,"_");
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = "BASSA_Checkliste_" + project + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('importFile').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const data = JSON.parse(ev.target.result);
+      fillData(data);
+      saveData(false);
+      alert("Checkliste importiert.");
+    }catch(err){
+      alert("Import fehlgeschlagen.");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+function copySummary(){
+  const txt = generateSummary();
+  navigator.clipboard.writeText(txt).then(() => {
+    alert("Zusammenfassung kopiert.");
+  }).catch(() => {
+    alert("Kopieren am Gerät nicht möglich – bitte Text manuell markieren.");
+  });
+}
+
+function resetAll(){
+  if(!confirm("Wirklich alles löschen?")) return;
+  fields.forEach(id => document.getElementById(id).value = "");
+  document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => cb.checked = false);
+  localStorage.removeItem(STORAGE_KEY);
+  updateAll();
+}
+
+function checkAll(){
+  document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => cb.checked = true);
+  saveData(false);
+}
+
+function uncheckAll(){
+  document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => cb.checked = false);
+  saveData(false);
+}
+
+[...document.querySelectorAll('input, select, textarea')].forEach(el => {
+  const ev = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
+  el.addEventListener(ev, () => saveData(false));
+});
+
+loadData();
+</script>
+</body>
+</html>
