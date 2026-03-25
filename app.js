@@ -1,65 +1,89 @@
-/* ===== IndexedDB ===== */
-var DB_NAME = 'bassa-checkliste';
-var DB_VERSION = 1;
-var db = null;
+/* ===== Auth State ===== */
+var currentUser = null;
 var currentProjectId = null;
 
-var FIELDS = ['projekt','kunde','adresse','ansprechperson','telefon','beginn',
-  'geruest','pv','spenglereiFarbe','spenglereiMaterial','eindeckung','zubehoer','notiz'];
-
-function openDB() {
-  return new Promise(function(resolve, reject) {
-    var req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = function(e) {
-      var d = e.target.result;
-      if (!d.objectStoreNames.contains('projects')) {
-        d.createObjectStore('projects', { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = function(e) { db = e.target.result; resolve(db); };
-    req.onerror = function(e) { reject(e); };
-  });
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = '';
 }
 
-function dbPut(data) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(); return; }
-    var tx = db.transaction('projects', 'readwrite');
-    tx.objectStore('projects').put(data);
-    tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(e) { reject(e); };
-  });
+function showLogin() {
+  document.getElementById('loginScreen').style.display = '';
+  document.getElementById('appShell').style.display = 'none';
+  currentUser = null;
+  currentProjectId = null;
 }
 
-function dbGetAll() {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve([]); return; }
-    var tx = db.transaction('projects', 'readonly');
-    var req = tx.objectStore('projects').getAll();
-    req.onsuccess = function() { resolve(req.result || []); };
-    req.onerror = function(e) { reject(e); };
-  });
+/* ===== Login ===== */
+document.getElementById('btnLogin').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+});
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pw = document.getElementById('loginPassword').value;
+  var errEl = document.getElementById('loginError');
+  var btn = document.getElementById('btnLogin');
+
+  if (!email || !pw) {
+    errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    errEl.style.display = '';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Wird angemeldet...';
+  errEl.style.display = 'none';
+
+  var res = await sbLogin(email, pw);
+
+  if (res.error) {
+    errEl.textContent = 'Anmeldung fehlgeschlagen. Bitte pruefen Sie Ihre Zugangsdaten.';
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Anmelden';
+    return;
+  }
+
+  currentUser = res.data.user;
+  btn.disabled = false;
+  btn.textContent = 'Anmelden';
+  showApp();
+  showDashboard();
 }
 
-function dbGet(id) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(null); return; }
-    var tx = db.transaction('projects', 'readonly');
-    var req = tx.objectStore('projects').get(id);
-    req.onsuccess = function() { resolve(req.result || null); };
-    req.onerror = function(e) { reject(e); };
-  });
-}
+/* ===== Logout ===== */
+document.getElementById('btnLogout').addEventListener('click', async function() {
+  await sbLogout();
+  showLogin();
+});
 
-function dbDelete(id) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(); return; }
-    var tx = db.transaction('projects', 'readwrite');
-    tx.objectStore('projects').delete(id);
-    tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(e) { reject(e); };
-  });
-}
+/* ===== Auth State Change ===== */
+sbOnAuthChange(function(event, session) {
+  if (event === 'SIGNED_IN' && session && session.user) {
+    currentUser = session.user;
+    showApp();
+    showDashboard();
+  } else if (event === 'SIGNED_OUT') {
+    showLogin();
+  }
+});
+
+/* ===== Init: check existing session ===== */
+(async function initAuth() {
+  var res = await sbGetSession();
+  if (res.data && res.data.session && res.data.session.user) {
+    currentUser = res.data.session.user;
+    showApp();
+    showDashboard();
+  } else {
+    showLogin();
+  }
+})();
 
 /* ===== Sidebar Toggle ===== */
 function openSidebar() {
@@ -73,6 +97,22 @@ function closeSidebar() {
 
 /* ===== Section Navigation ===== */
 var currentSection = 'checkliste';
+
+var FIELDS = ['projekt','kunde','adresse','ansprechperson','telefon','beginn',
+  'geruest','pv','spenglereiFarbe','spenglereiMaterial','eindeckung','zubehoer','notiz'];
+
+var DB_FIELD_MAP = {
+  spenglereiFarbe: 'spenglerei_farbe',
+  spenglereiMaterial: 'spenglerei_material'
+};
+
+function toDbField(f) { return DB_FIELD_MAP[f] || f; }
+function toFormField(dbf) {
+  for (var k in DB_FIELD_MAP) {
+    if (DB_FIELD_MAP[k] === dbf) return k;
+  }
+  return dbf;
+}
 
 function setTopbarContext(ctx) {
   document.getElementById('ctxDashboard').style.display = ctx === 'dashboard' ? '' : 'none';
@@ -159,8 +199,8 @@ function showDetail(id) {
 
 /* ===== Dashboard ===== */
 async function loadDashboard() {
-  var projects = await dbGetAll();
-  projects.sort(function(a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+  var res = await sbGetAllProjects();
+  var projects = (res.data || []);
 
   var total = projects.length;
   var open = 0, wip = 0, done = 0;
@@ -227,13 +267,14 @@ function esc(s) {
 
 /* ===== Detail: Load / Save ===== */
 async function loadProject(id) {
-  var p = await dbGet(id);
-  if (!p) { showDashboard(); return; }
+  var res = await sbGetProject(id);
+  if (res.error || !res.data) { showDashboard(); return; }
+  var p = res.data;
 
   FIELDS.forEach(function(f) {
     var el = document.getElementById(f);
     if (el) {
-      el.value = p[f] || '';
+      el.value = p[toDbField(f)] || '';
     }
   });
 
@@ -252,9 +293,14 @@ async function loadProject(id) {
 }
 
 function collectProjectData() {
-  var data = { id: currentProjectId, updatedAt: Date.now() };
+  var data = {
+    updated_at: Date.now(),
+    user_id: currentUser.id
+  };
+  if (currentProjectId) data.id = currentProjectId;
+
   FIELDS.forEach(function(f) {
-    data[f] = document.getElementById(f).value;
+    data[toDbField(f)] = document.getElementById(f).value;
   });
   data.checklist = Array.from(document.querySelectorAll('#checklist input[type="checkbox"]')).map(function(cb) {
     return { label: cb.dataset.label, checked: cb.checked };
@@ -266,11 +312,11 @@ var saveTimer = null;
 function autoSave() {
   if (!currentProjectId) return;
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(function() {
+  saveTimer = setTimeout(async function() {
     var data = collectProjectData();
-    dbPut(data);
+    await sbUpsertProject(data);
     document.getElementById('detailTitle').textContent = data.projekt || 'Neue Baustelle';
-  }, 400);
+  }, 600);
 }
 
 function updateDetailUI() {
@@ -312,8 +358,8 @@ function generateSummary() {
     'Beginn Dachdecker: ' + valueOrDash(d.beginn) + '\n' +
     'Gerüst: ' + valueOrDash(d.geruest) + '\n' +
     'PV-Anlage: ' + valueOrDash(d.pv) + '\n\n' +
-    'Farbe Spenglerei: ' + valueOrDash(d.spenglereiFarbe) + '\n' +
-    'Material Spenglerei: ' + valueOrDash(d.spenglereiMaterial) + '\n' +
+    'Farbe Spenglerei: ' + valueOrDash(d.spenglerei_farbe) + '\n' +
+    'Material Spenglerei: ' + valueOrDash(d.spenglerei_material) + '\n' +
     'Eindeckung / Dachaufbau: ' + valueOrDash(d.eindeckung) + '\n' +
     'Zubehör / Zusatzteile: ' + valueOrDash(d.zubehoer) + '\n' +
     'Interne Notizen: ' + valueOrDash(d.notiz) + '\n\n' +
@@ -324,11 +370,9 @@ function generateSummary() {
 }
 
 /* ===== Actions ===== */
-function createNewProject() {
-  var id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-  var data = { id: id, updatedAt: Date.now() };
-  FIELDS.forEach(function(f) { data[f] = ''; });
-  data.checklist = [
+async function createNewProject() {
+  if (!currentUser) return;
+  var defaultChecklist = [
     {label:'Auftrag vorhanden',checked:false},{label:'Pläne vorhanden',checked:false},
     {label:'Farbe geklärt',checked:false},{label:'Material geklärt',checked:false},
     {label:'Eindeckung geklärt',checked:false},{label:'Zubehör geklärt',checked:false},
@@ -336,16 +380,24 @@ function createNewProject() {
     {label:'Gerüst geklärt',checked:false},{label:'Ansprechperson geklärt',checked:false},
     {label:'Material bestellbereit',checked:false}
   ];
-  dbPut(data).then(function() { showDetail(id); });
+
+  var data = { user_id: currentUser.id, updated_at: Date.now(), checklist: defaultChecklist };
+  FIELDS.forEach(function(f) { data[toDbField(f)] = ''; });
+
+  var res = await sbInsertProject(data);
+  if (res.error) {
+    showToast('Fehler beim Erstellen');
+    return;
+  }
+  showDetail(res.data.id);
 }
 
-function deleteProject() {
+async function deleteProject() {
   if (!currentProjectId) return;
   if (!confirm('Diese Baustelle wirklich löschen?')) return;
-  dbDelete(currentProjectId).then(function() {
-    showToast('Baustelle gelöscht');
-    showDashboard();
-  });
+  await sbDeleteProject(currentProjectId);
+  showToast('Baustelle gelöscht');
+  showDashboard();
 }
 
 /* ===== PDF Export ===== */
@@ -390,11 +442,9 @@ function exportProject() {
   var W = 210, ML = 14, MR = 14, CW = W - ML - MR;
   var y = 0;
 
-  /* ---- Page background ---- */
   doc.setFillColor(245, 246, 248);
   doc.rect(0, 0, W, 297, 'F');
 
-  /* ---- Dark header ---- */
   doc.setFillColor(47, 52, 58);
   doc.rect(0, 0, W, 30, 'F');
 
@@ -410,7 +460,6 @@ function exportProject() {
   doc.setFontSize(7);
   doc.text(today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear(), ML, 26);
 
-  /* ---- Status pill top-right ---- */
   var pct = calcProgress(data.checklist);
   var statusTxt, pillBg, pillCol;
   if (pct === 100) { statusTxt = 'BESTELLBEREIT'; pillBg = COL.okBg; pillCol = COL.ok; }
@@ -431,14 +480,12 @@ function exportProject() {
 
   y = 34;
 
-  /* ---- Progress bar ---- */
   rr(doc, ML, y, CW, 3.5, 1.5, [230, 232, 236]);
   if (pct > 0) {
     rr(doc, ML, y, Math.max(CW * pct / 100, 3), 3.5, 1.5, COL.orange);
   }
   y += 7;
 
-  /* ---- Stammdaten Card ---- */
   var stamm = [
     ['Baustelle / Projekt', data.projekt],
     ['Kunde / Bauherr', data.kunde],
@@ -448,8 +495,8 @@ function exportProject() {
     ['Beginn Dachdecker', data.beginn],
     ['Geruest', data.geruest],
     ['PV-Anlage', data.pv],
-    ['Farbe Spenglerei', data.spenglereiFarbe],
-    ['Material Spenglerei', data.spenglereiMaterial],
+    ['Farbe Spenglerei', data.spenglerei_farbe],
+    ['Material Spenglerei', data.spenglerei_material],
     ['Eindeckung', data.eindeckung],
     ['Zubehoer', data.zubehoer],
     ['Notizen', data.notiz]
@@ -498,7 +545,6 @@ function exportProject() {
 
   y += stammH + 5;
 
-  /* ---- Checkliste Card (two columns) ---- */
   var items = data.checklist || [];
   var half = Math.ceil(items.length / 2);
   var colW = (CW - cardPad * 2 - 6) / 2;
@@ -545,14 +591,12 @@ function exportProject() {
     }
   }
 
-  /* ---- Footer ---- */
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(105, 112, 122);
   doc.text('BASSA Dach GmbH  --  Baustellen-Checkliste', ML, 290);
   doc.text('Seite 1 / 1', W - MR, 290, { align: 'right' });
 
-  /* ---- Embed data for re-import ---- */
   var jsonStr = JSON.stringify(data);
   var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
   doc.setProperties({ subject: 'BASSA_B64:' + b64 });
@@ -579,15 +623,18 @@ function importProject(file) {
 
 function importFromJson(file) {
   var reader = new FileReader();
-  reader.onload = function(ev) {
+  reader.onload = async function(ev) {
     try {
-      var data = JSON.parse(ev.target.result);
-      data.id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-      data.updatedAt = Date.now();
-      dbPut(data).then(function() {
-        showToast('Baustelle importiert');
-        showDashboard();
+      var raw = JSON.parse(ev.target.result);
+      var data = { user_id: currentUser.id, updated_at: Date.now(), checklist: raw.checklist || [] };
+      FIELDS.forEach(function(f) {
+        var dbf = toDbField(f);
+        data[dbf] = raw[f] || raw[dbf] || '';
       });
+      var res = await sbInsertProject(data);
+      if (res.error) throw res.error;
+      showToast('Baustelle importiert');
+      showDashboard();
     } catch (e) {
       showToast('Import fehlgeschlagen');
     }
@@ -597,7 +644,7 @@ function importFromJson(file) {
 
 function importFromPdf(file) {
   var reader = new FileReader();
-  reader.onload = function(ev) {
+  reader.onload = async function(ev) {
     try {
       var bytes = new Uint8Array(ev.target.result);
       var text = new TextDecoder('latin1').decode(bytes);
@@ -607,13 +654,16 @@ function importFromPdf(file) {
         return;
       }
       var jsonStr = decodeURIComponent(escape(atob(match[1])));
-      var data = JSON.parse(jsonStr);
-      data.id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-      data.updatedAt = Date.now();
-      dbPut(data).then(function() {
-        showToast('Baustelle aus PDF importiert');
-        showDashboard();
+      var raw = JSON.parse(jsonStr);
+      var data = { user_id: currentUser.id, updated_at: Date.now(), checklist: raw.checklist || [] };
+      FIELDS.forEach(function(f) {
+        var dbf = toDbField(f);
+        data[dbf] = raw[f] || raw[dbf] || '';
       });
+      var res = await sbInsertProject(data);
+      if (res.error) throw res.error;
+      showToast('Baustelle aus PDF importiert');
+      showDashboard();
     } catch (e) {
       showToast('PDF-Import fehlgeschlagen');
     }
@@ -699,10 +749,3 @@ document.getElementById('btnFotoExport').addEventListener('click', function() {
 if (typeof BassaDatepicker !== 'undefined') {
   new BassaDatepicker(document.getElementById('beginn'));
 }
-
-/* ===== Init ===== */
-openDB().then(function() {
-  showDashboard();
-}).catch(function() {
-  showDashboard();
-});

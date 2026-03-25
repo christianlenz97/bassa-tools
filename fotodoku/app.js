@@ -1,106 +1,119 @@
-/* ---- IndexedDB persistence ---- */
+/* ---- Supabase persistence ---- */
 
-var DB_NAME = 'bassa-fotodoku';
-var DB_VERSION = 2;
-var db = null;
+var fotodokuUserId = null;
+var imageDbRecords = [];
 
-function openDB() {
-  return new Promise(function(resolve, reject) {
-    var req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = function(e) {
-      var d = e.target.result;
-      if (!d.objectStoreNames.contains('images')) {
-        d.createObjectStore('images', { keyPath: 'id', autoIncrement: true });
+async function getFotodokuUserId() {
+  if (fotodokuUserId) return fotodokuUserId;
+  try {
+    var res = await sbGetSession();
+    if (res.data && res.data.session && res.data.session.user) {
+      fotodokuUserId = res.data.session.user.id;
+    }
+  } catch (e) {}
+  if (!fotodokuUserId && window !== window.top) {
+    try {
+      var parentUser = window.parent.currentUser;
+      if (parentUser) fotodokuUserId = parentUser.id;
+    } catch (e) {}
+  }
+  return fotodokuUserId;
+}
+
+async function saveSettings() {
+  var uid = await getFotodokuUserId();
+  if (!uid) return;
+  await sbUpsertFotodokuSettings({
+    user_id: uid,
+    doc_title: docTitle.value,
+    customer_name: customerName.value,
+    object_name: objectName.value,
+    doc_date: docDate.value,
+    layout_mode: layoutMode.value,
+    updated_at: new Date().toISOString()
+  });
+}
+
+async function saveImages() {
+  var uid = await getFotodokuUserId();
+  if (!uid) return;
+
+  await sbDeleteAllFotodokuImages(uid);
+  imageDbRecords = [];
+
+  for (var i = 0; i < images.length; i++) {
+    var img = images[i];
+    var storagePath = img.storagePath || '';
+
+    if (!storagePath && img.src) {
+      var blob = await dataUrlToBlob(img.src);
+      var uploadRes = await sbUploadImage(uid, img.name || ('img_' + i + '.jpg'), blob);
+      if (!uploadRes.error && uploadRes.path) {
+        storagePath = uploadRes.path;
+        images[i].storagePath = storagePath;
       }
-      if (!d.objectStoreNames.contains('settings')) {
-        d.createObjectStore('settings', { keyPath: 'key' });
-      }
-    };
-    req.onsuccess = function(e) { db = e.target.result; resolve(db); };
-    req.onerror = function(e) { console.error('DB open error', e); reject(e); };
-  });
-}
+    }
 
-function dbPut(store, data) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(); return; }
-    var tx = db.transaction(store, 'readwrite');
-    var s = tx.objectStore(store);
-    s.put(data);
-    tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(e) { reject(e); };
-  });
-}
-
-function dbGetAll(store) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve([]); return; }
-    var tx = db.transaction(store, 'readonly');
-    var s = tx.objectStore(store);
-    var req = s.getAll();
-    req.onsuccess = function() { resolve(req.result || []); };
-    req.onerror = function(e) { reject(e); };
-  });
-}
-
-function dbGet(store, key) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(null); return; }
-    var tx = db.transaction(store, 'readonly');
-    var s = tx.objectStore(store);
-    var req = s.get(key);
-    req.onsuccess = function() { resolve(req.result || null); };
-    req.onerror = function(e) { reject(e); };
-  });
-}
-
-function dbClearStore(store) {
-  return new Promise(function(resolve, reject) {
-    if (!db) { resolve(); return; }
-    var tx = db.transaction(store, 'readwrite');
-    tx.objectStore(store).clear();
-    tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(e) { reject(e); };
-  });
-}
-
-function saveSettings() {
-  if (!db) return;
-  dbPut('settings', {
-    key: 'form',
-    docTitle: docTitle.value,
-    customerName: customerName.value,
-    objectName: objectName.value,
-    docDate: docDate.value,
-    layoutMode: layoutMode.value
-  });
-}
-
-function saveImages() {
-  if (!db) return;
-  dbClearStore('images').then(function() {
-    images.forEach(function(img) {
-      dbPut('images', { name: img.name, src: img.src, caption: img.caption || '' });
+    var res = await sbInsertFotodokuImage({
+      user_id: uid,
+      name: img.name || '',
+      storage_path: storagePath,
+      caption: img.caption || '',
+      sort_order: i
     });
+    if (res.data) imageDbRecords.push(res.data);
+  }
+}
+
+function dataUrlToBlob(dataUrl) {
+  return new Promise(function(resolve) {
+    if (dataUrl.startsWith('blob:') || !dataUrl.startsWith('data:')) {
+      fetch(dataUrl).then(function(r) { return r.blob(); }).then(resolve);
+      return;
+    }
+    var parts = dataUrl.split(',');
+    var mime = parts[0].match(/:(.*?);/)[1];
+    var b64 = atob(parts[1]);
+    var arr = new Uint8Array(b64.length);
+    for (var i = 0; i < b64.length; i++) arr[i] = b64.charCodeAt(i);
+    resolve(new Blob([arr], { type: mime }));
   });
 }
 
 async function loadSavedData() {
+  var uid = await getFotodokuUserId();
+  if (!uid) { render(); return; }
+
   try {
-    await openDB();
-    var settings = await dbGet('settings', 'form');
-    if (settings) {
-      docTitle.value = settings.docTitle || 'FOTODOKUMENTATION';
-      customerName.value = settings.customerName || '';
-      objectName.value = settings.objectName || '';
-      docDate.value = settings.docDate || '';
-      layoutMode.value = settings.layoutMode || 'grid';
+    var settingsRes = await sbGetFotodokuSettings(uid);
+    if (settingsRes.data) {
+      var s = settingsRes.data;
+      docTitle.value = s.doc_title || 'FOTODOKUMENTATION';
+      customerName.value = s.customer_name || '';
+      objectName.value = s.object_name || '';
+      docDate.value = s.doc_date || '';
+      layoutMode.value = s.layout_mode || 'grid';
     }
-    var savedImages = await dbGetAll('images');
-    if (savedImages && savedImages.length > 0) {
-      images = savedImages.map(function(row) {
-        return { name: row.name, src: row.src, caption: row.caption || '' };
-      });
+
+    var imagesRes = await sbGetFotodokuImages(uid);
+    if (imagesRes.data && imagesRes.data.length > 0) {
+      imageDbRecords = imagesRes.data;
+      images = [];
+      for (var i = 0; i < imagesRes.data.length; i++) {
+        var row = imagesRes.data[i];
+        var src = '';
+        if (row.storage_path) {
+          var urlRes = await sbGetImageUrl(row.storage_path);
+          if (urlRes.data && urlRes.data.signedUrl) src = urlRes.data.signedUrl;
+        }
+        images.push({
+          name: row.name || '',
+          src: src,
+          caption: row.caption || '',
+          storagePath: row.storage_path || '',
+          dbId: row.id
+        });
+      }
     }
   } catch (e) {
     console.error('Failed to load saved data:', e);
@@ -159,21 +172,32 @@ var pdfBtnTop = document.getElementById('pdfBtnTop');
 if (pickBtnTop) pickBtnTop.addEventListener('click', function() { fileInput.click(); });
 if (pdfBtnTop) pdfBtnTop.addEventListener('click', function() { saveAsPdf(); });
 
-clearBtn.addEventListener('click', function() {
+clearBtn.addEventListener('click', async function() {
   if (!window.confirm('Wirklich ALLE Daten und Bilder löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')) return;
 
+  var uid = await getFotodokuUserId();
+  if (uid) {
+    await sbDeleteAllFotodokuImages(uid);
+    await sbDeleteAllStorageImages(uid);
+    await sbUpsertFotodokuSettings({
+      user_id: uid,
+      doc_title: 'FOTODOKUMENTATION',
+      customer_name: '',
+      object_name: '',
+      doc_date: '',
+      layout_mode: 'grid',
+      updated_at: new Date().toISOString()
+    });
+  }
+
   images = [];
+  imageDbRecords = [];
   deletedGridPages = new Set();
   docTitle.value = 'FOTODOKUMENTATION';
   customerName.value = '';
   objectName.value = '';
   docDate.value = '';
   layoutMode.value = 'grid';
-
-  if (db) {
-    dbClearStore('images');
-    dbClearStore('settings');
-  }
 
   render();
 });
@@ -231,12 +255,12 @@ function compressImage(file, maxDim, quality) {
       c.getContext('2d').drawImage(img, 0, 0, w, h);
       var dataUrl = c.toDataURL('image/jpeg', quality);
       URL.revokeObjectURL(url);
-      resolve({ name: file.name, src: dataUrl, caption: '' });
+      resolve({ name: file.name, src: dataUrl, caption: '', storagePath: '' });
     };
     img.onerror = function() {
       URL.revokeObjectURL(url);
       var reader = new FileReader();
-      reader.onload = function(ev) { resolve({ name: file.name, src: ev.target.result, caption: '' }); };
+      reader.onload = function(ev) { resolve({ name: file.name, src: ev.target.result, caption: '', storagePath: '' }); };
       reader.readAsDataURL(file);
     };
     img.src = url;
@@ -290,7 +314,12 @@ function onCaptionInput(globalIndex, value) {
     var captionEl = document.querySelector('.slot-caption[data-img-idx="' + globalIndex + '"]');
     if (captionEl) captionEl.textContent = value;
     if (captionSaveTimer) clearTimeout(captionSaveTimer);
-    captionSaveTimer = setTimeout(function() { saveImages(); }, 800);
+    captionSaveTimer = setTimeout(function() {
+      var img = images[globalIndex];
+      if (img && img.dbId) {
+        sbUpdateFotodokuImage(img.dbId, { caption: value });
+      }
+    }, 800);
   }
 }
 
@@ -298,8 +327,13 @@ function onCaptionInput(globalIndex, value) {
 
 function removeImage(idx) {
   if (idx < 0 || idx >= images.length) return;
-  images.splice(idx, 1);
-  saveImages();
+  var removed = images.splice(idx, 1)[0];
+  if (removed && removed.dbId) {
+    sbDeleteFotodokuImage(removed.dbId);
+  }
+  if (removed && removed.storagePath) {
+    sbDeleteStorageImage(removed.storagePath);
+  }
   render();
 }
 

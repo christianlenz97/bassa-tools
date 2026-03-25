@@ -530,6 +530,111 @@ input:focus, select:focus, textarea:focus {
   .project-card-progress { width: 60px; }
 }
 
+/* ===== LOGIN SCREEN ===== */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.login-card {
+  background: var(--dark2);
+  border-radius: 20px;
+  padding: 40px 32px 36px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.login-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  object-fit: contain;
+}
+.login-title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+.login-sub {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+}
+.login-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.login-field {
+  text-align: left;
+  margin-bottom: 14px;
+}
+.login-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+}
+.login-field input {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.login-field input::placeholder { color: rgba(255,255,255,.25); }
+.login-field input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(232,93,12,.15);
+}
+.login-btn {
+  width: 100%;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: transform .1s, opacity .15s;
+}
+.login-btn:active { transform: scale(.98); }
+.login-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ===== LOGOUT BUTTON ===== */
+.nav-logout {
+  color: rgba(255,255,255,.5) !important;
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: inherit;
+  margin-bottom: 8px;
+}
+.nav-logout:hover { color: #fff !important; background: rgba(255,255,255,.06); }
+
 @media print {
   .sidebar, .topbar, .toast, .check-actions { display: none !important; }
   .main { margin-left: 0; }
