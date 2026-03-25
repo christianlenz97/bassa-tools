@@ -275,19 +275,236 @@ function deleteProject() {
   });
 }
 
-function exportProject() {
-  var data = collectProjectData();
-  var name = (data.projekt || 'baustelle').replace(/[^\wäöüÄÖÜß\-]+/g, '_');
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'BASSA_Checkliste_' + name + '.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('Export heruntergeladen');
+/* ===== PDF Export ===== */
+var COL = {
+  dark: [47,52,58], orange: [232,93,12], ok: [23,138,69],
+  mid: [105,112,122], light: [245,246,248], line: [217,221,227],
+  white: [255,255,255], card: [255,255,255],
+  warnBg: [255,243,236], okBg: [232,246,238], openBg: [238,241,245]
+};
+
+function rr(d, x, y, w, h, r, c) {
+  d.setFillColor(c[0], c[1], c[2]);
+  d.roundedRect(x, y, w, h, r, r, 'F');
 }
 
+function drawCheckbox(d, x, y, size, checked) {
+  var s = size;
+  if (checked) {
+    d.setFillColor(23, 138, 69);
+    d.roundedRect(x, y, s, s, 1, 1, 'F');
+    d.setDrawColor(255, 255, 255);
+    d.setLineWidth(0.5);
+    d.line(x + s * 0.2, y + s * 0.52, x + s * 0.42, y + s * 0.75);
+    d.line(x + s * 0.42, y + s * 0.75, x + s * 0.8, y + s * 0.25);
+  } else {
+    d.setDrawColor(180, 180, 180);
+    d.setLineWidth(0.35);
+    d.roundedRect(x, y, s, s, 1, 1, 'S');
+  }
+}
+
+function exportProject() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    showToast('PDF-Bibliothek laedt noch, bitte nochmal versuchen');
+    return;
+  }
+  var data = collectProjectData();
+  var name = (data.projekt || 'baustelle').replace(/[^\wäöüÄÖÜß\-]+/g, '_');
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  var W = 210, ML = 14, MR = 14, CW = W - ML - MR;
+  var y = 0;
+
+  /* ---- Page background ---- */
+  doc.setFillColor(245, 246, 248);
+  doc.rect(0, 0, W, 297, 'F');
+
+  /* ---- Dark header ---- */
+  doc.setFillColor(47, 52, 58);
+  doc.rect(0, 0, W, 30, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('BAUSTELLEN-CHECKLISTE', ML, 13);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(180, 180, 180);
+  doc.text('BASSA Dach', ML, 20);
+  var today = new Date();
+  doc.setFontSize(7);
+  doc.text(today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear(), ML, 26);
+
+  /* ---- Status pill top-right ---- */
+  var pct = calcProgress(data.checklist);
+  var statusTxt, pillBg, pillCol;
+  if (pct === 100) { statusTxt = 'BESTELLBEREIT'; pillBg = COL.okBg; pillCol = COL.ok; }
+  else if (pct >= 50) { statusTxt = 'IN ARBEIT'; pillBg = COL.warnBg; pillCol = COL.orange; }
+  else { statusTxt = 'OFFEN'; pillBg = COL.openBg; pillCol = COL.dark; }
+
+  var pw = doc.getTextWidth(statusTxt) + 8;
+  rr(doc, W - MR - pw, 9, pw, 7, 3, pillBg);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(pillCol[0], pillCol[1], pillCol[2]);
+  doc.text(statusTxt, W - MR - pw / 2, 14, { align: 'center' });
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(pct + ' %', W - MR - pw / 2, 24, { align: 'center' });
+
+  y = 34;
+
+  /* ---- Progress bar ---- */
+  rr(doc, ML, y, CW, 3.5, 1.5, [230, 232, 236]);
+  if (pct > 0) {
+    rr(doc, ML, y, Math.max(CW * pct / 100, 3), 3.5, 1.5, COL.orange);
+  }
+  y += 7;
+
+  /* ---- Stammdaten Card ---- */
+  var stamm = [
+    ['Baustelle / Projekt', data.projekt],
+    ['Kunde / Bauherr', data.kunde],
+    ['Adresse', data.adresse],
+    ['Ansprechperson', data.ansprechperson],
+    ['Telefon', data.telefon],
+    ['Beginn Dachdecker', data.beginn],
+    ['Geruest', data.geruest],
+    ['PV-Anlage', data.pv],
+    ['Farbe Spenglerei', data.spenglereiFarbe],
+    ['Material Spenglerei', data.spenglereiMaterial],
+    ['Eindeckung', data.eindeckung],
+    ['Zubehoer', data.zubehoer],
+    ['Notizen', data.notiz]
+  ];
+
+  var cardX = ML, cardPad = 5;
+  var innerX = cardX + cardPad;
+  var innerW = CW - cardPad * 2;
+  var labelCol = 42;
+
+  var stammH = 8 + stamm.length * 5.2 + 3;
+  rr(doc, cardX, y, CW, stammH, 3, COL.card);
+  doc.setDrawColor(217, 221, 227);
+  doc.roundedRect(cardX, y, CW, stammH, 3, 3, 'S');
+
+  var cy = y + 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(47, 52, 58);
+  doc.text('Stammdaten', innerX, cy);
+
+  rr(doc, innerX + innerW - 22, cy - 4, 22, 6, 2, COL.warnBg);
+  doc.setFontSize(5.5);
+  doc.setTextColor(232, 93, 12);
+  doc.text('CHEF-CHECK', innerX + innerW - 11, cy - 0.5, { align: 'center' });
+
+  cy += 4;
+  doc.setDrawColor(217, 221, 227);
+  doc.line(innerX, cy, innerX + innerW, cy);
+  cy += 4;
+
+  stamm.forEach(function(row) {
+    var val = String(row[1] || '-').trim() || '-';
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(105, 112, 122);
+    doc.text(row[0].toUpperCase(), innerX, cy);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(47, 52, 58);
+    var lines = doc.splitTextToSize(val, innerW - labelCol);
+    doc.text(lines, innerX + labelCol, cy);
+    cy += Math.max(lines.length * 3.8, 5.2);
+  });
+
+  y += stammH + 5;
+
+  /* ---- Checkliste Card (two columns) ---- */
+  var items = data.checklist || [];
+  var half = Math.ceil(items.length / 2);
+  var colW = (CW - cardPad * 2 - 6) / 2;
+  var rowH = 7.5;
+  var checkRows = Math.max(half, items.length - half);
+  var checkCardH = 8 + checkRows * rowH + 5;
+
+  rr(doc, cardX, y, CW, checkCardH, 3, COL.card);
+  doc.setDrawColor(217, 221, 227);
+  doc.roundedRect(cardX, y, CW, checkCardH, 3, 3, 'S');
+
+  cy = y + 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(47, 52, 58);
+  doc.text('Pflicht-Checkliste', innerX, cy);
+  cy += 4;
+  doc.setDrawColor(217, 221, 227);
+  doc.line(innerX, cy, innerX + innerW, cy);
+  cy += 4;
+
+  var startCy = cy;
+  var cbSize = 3.5;
+
+  for (var col = 0; col < 2; col++) {
+    var colX = innerX + col * (colW + 6);
+    var ry = startCy;
+    var startIdx = col * half;
+    var endIdx = Math.min(startIdx + half, items.length);
+
+    for (var i = startIdx; i < endIdx; i++) {
+      var item = items[i];
+      var rowBg = item.checked ? COL.okBg : COL.light;
+      rr(doc, colX, ry - 1.5, colW, rowH - 1.5, 2, rowBg);
+
+      drawCheckbox(doc, colX + 2, ry - 0.2, cbSize, item.checked);
+
+      doc.setFont('helvetica', item.checked ? 'normal' : 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(item.checked ? 23 : 47, item.checked ? 138 : 52, item.checked ? 69 : 58);
+      doc.text(item.label, colX + 2 + cbSize + 2.5, ry + 2.5);
+
+      ry += rowH;
+    }
+  }
+
+  /* ---- Footer ---- */
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(105, 112, 122);
+  doc.text('BASSA Dach GmbH  --  Baustellen-Checkliste', ML, 290);
+  doc.text('Seite 1 / 1', W - MR, 290, { align: 'right' });
+
+  /* ---- Embed data for re-import ---- */
+  var jsonStr = JSON.stringify(data);
+  var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+  doc.setProperties({ subject: 'BASSA_B64:' + b64 });
+
+  var blob = doc.output('blob');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'BASSA_Checkliste_' + name + '.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('PDF heruntergeladen');
+}
+
+/* ===== Import (JSON or PDF) ===== */
 function importProject(file) {
+  if (file.name.toLowerCase().endsWith('.pdf')) {
+    importFromPdf(file);
+  } else {
+    importFromJson(file);
+  }
+}
+
+function importFromJson(file) {
   var reader = new FileReader();
   reader.onload = function(ev) {
     try {
@@ -303,6 +520,32 @@ function importProject(file) {
     }
   };
   reader.readAsText(file);
+}
+
+function importFromPdf(file) {
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var bytes = new Uint8Array(ev.target.result);
+      var text = new TextDecoder('latin1').decode(bytes);
+      var match = text.match(/\/Subject\s*\(BASSA_B64:([\w+/=]+)\)/);
+      if (!match) {
+        showToast('Kein BASSA-Projekt in PDF gefunden');
+        return;
+      }
+      var jsonStr = decodeURIComponent(escape(atob(match[1])));
+      var data = JSON.parse(jsonStr);
+      data.id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      data.updatedAt = Date.now();
+      dbPut(data).then(function() {
+        showToast('Baustelle aus PDF importiert');
+        showDashboard();
+      });
+    } catch (e) {
+      showToast('PDF-Import fehlgeschlagen');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function copySummary() {
@@ -321,6 +564,10 @@ document.getElementById('btnBack').addEventListener('click', showDashboard);
 document.getElementById('btnDelete').addEventListener('click', deleteProject);
 document.getElementById('btnExport').addEventListener('click', exportProject);
 document.getElementById('btnCopy').addEventListener('click', copySummary);
+
+document.getElementById('btnImportDash').addEventListener('click', function() {
+  document.getElementById('importFile').click();
+});
 
 document.getElementById('btnCheckAll').addEventListener('click', function() {
   document.querySelectorAll('#checklist input[type="checkbox"]').forEach(function(cb) { cb.checked = true; });

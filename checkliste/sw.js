@@ -1,4 +1,4 @@
-var CACHE_NAME = 'checkliste-v1';
+var CACHE_NAME = 'checkliste-v4';
 var URLS_TO_CACHE = [
   './',
   'index.html',
@@ -6,7 +6,8 @@ var URLS_TO_CACHE = [
   'app.js',
   'manifest.json',
   'assets/icon-192.png',
-  'assets/icon-512.png'
+  'assets/icon-512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', function(e) {
@@ -29,8 +30,14 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      return cached || fetch(e.request);
+    fetch(e.request).then(function(response) {
+      var clone = response.clone();
+      caches.open(CACHE_NAME).then(function(cache) {
+        cache.put(e.request, clone);
+      });
+      return response;
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });

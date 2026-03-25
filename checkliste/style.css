@@ -46,6 +46,11 @@ body {
   font-size: 13px;
   opacity: .7;
 }
+.dash-header-btns {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
 .btn-fab {
   background: var(--orange);
   color: #fff;
@@ -57,6 +62,12 @@ body {
   cursor: pointer;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(232,93,12,.3);
+}
+.btn-fab.btn-fab-outline {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,.5);
+  box-shadow: none;
 }
 .btn-fab:active { transform: scale(.97); }
 
@@ -402,6 +413,7 @@ input:focus, select:focus, textarea:focus {
   .detail-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .project-card-progress { width: 70px; }
+  .dash-header-btns { gap: 6px; }
   .btn-fab { padding: 10px 14px; font-size: 12px; }
   .detail-actions { gap: 4px; }
   .btn-sm { padding: 7px 8px; font-size: 11px; }
