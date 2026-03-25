@@ -58,10 +58,12 @@ async function saveAsPdf() {
   var originalText = pdfBtn.textContent;
   pdfBtn.classList.add('loading');
 
-  var toolbar = document.querySelector('.toolbar');
-  var dropzoneEl = document.getElementById('dropzone');
+  var settingsBar = document.querySelector('.settings-bar');
+  var topbarEl = document.getElementById('fotodokuTopbar');
   var thumbbarEl = document.getElementById('thumbbar');
+  var dragOv = document.getElementById('dragOverlay');
   var captionInputs = document.querySelectorAll('.caption-inputs');
+  var slotRemoves = document.querySelectorAll('.slot-remove');
   var pageNodes = Array.from(document.querySelectorAll('.page-wrap:not(.deleted) .page'));
 
   if (pageNodes.length === 0) {
@@ -71,17 +73,20 @@ async function saveAsPdf() {
   }
 
   var previous = {
-    toolbar: toolbar.style.display,
-    dropzone: dropzoneEl.style.display,
-    thumbbar: thumbbarEl.style.display,
+    settingsBar: settingsBar ? settingsBar.style.display : '',
+    topbar: topbarEl ? topbarEl.style.display : '',
+    thumbbar: thumbbarEl ? thumbbarEl.style.display : '',
+    dragOv: dragOv ? dragOv.style.display : '',
     bodyBg: document.body.style.background
   };
 
-  toolbar.style.display = 'none';
-  dropzoneEl.style.display = 'none';
-  thumbbarEl.style.display = 'none';
+  if (settingsBar) settingsBar.style.display = 'none';
+  if (topbarEl) topbarEl.style.display = 'none';
+  if (thumbbarEl) thumbbarEl.style.display = 'none';
+  if (dragOv) dragOv.style.display = 'none';
   document.body.style.background = '#ffffff';
   captionInputs.forEach(function(el) { el.style.display = 'none'; });
+  slotRemoves.forEach(function(el) { el.style.display = 'none'; });
 
   var allPages = document.querySelectorAll('.page');
   var savedTransforms = [];
@@ -132,9 +137,11 @@ async function saveAsPdf() {
       p.style.marginBottom = '';
     });
     captionInputs.forEach(function(el) { el.style.display = ''; });
-    toolbar.style.display = previous.toolbar;
-    dropzoneEl.style.display = previous.dropzone;
-    thumbbarEl.style.display = previous.thumbbar;
+    slotRemoves.forEach(function(el) { el.style.display = ''; });
+    if (settingsBar) settingsBar.style.display = previous.settingsBar;
+    if (topbarEl) topbarEl.style.display = previous.topbar;
+    if (thumbbarEl) thumbbarEl.style.display = previous.thumbbar;
+    if (dragOv) dragOv.style.display = previous.dragOv;
     document.body.style.background = previous.bodyBg;
     pdfBtn.textContent = originalText;
     pdfBtn.classList.remove('loading');

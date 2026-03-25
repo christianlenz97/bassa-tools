@@ -1,4 +1,4 @@
-var CACHE_NAME = 'fotodoku-v17';
+var CACHE_NAME = 'fotodoku-v18';
 
 var ASSETS_TO_CACHE = [
   './',

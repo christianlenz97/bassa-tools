@@ -219,26 +219,27 @@ body {
   height: 56px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  overflow: hidden;
   background: #fff;
+  position: relative;
 }
 .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: 7px;
 }
 .thumb-remove {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 18px;
-  height: 18px;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: none;
   background: rgba(0,0,0,.7);
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
   cursor: pointer;
   display: none;
@@ -248,7 +249,6 @@ body {
   z-index: 5;
 }
 .thumb:hover .thumb-remove { display: flex; }
-.thumb { position: relative; }
 .pages {
   display: flex;
   flex-direction: column;

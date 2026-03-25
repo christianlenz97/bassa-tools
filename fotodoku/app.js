@@ -160,10 +160,7 @@ if (pickBtnTop) pickBtnTop.addEventListener('click', function() { fileInput.clic
 if (pdfBtnTop) pdfBtnTop.addEventListener('click', function() { saveAsPdf(); });
 
 clearBtn.addEventListener('click', function() {
-  var ok1 = window.confirm('Wirklich ALLE Daten und Bilder löschen?');
-  if (!ok1) return;
-  var ok2 = window.confirm('Sicher? Dieser Schritt kann nicht rückgängig gemacht werden.');
-  if (!ok2) return;
+  if (!window.confirm('Wirklich ALLE Daten und Bilder löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')) return;
 
   images = [];
   deletedGridPages = new Set();

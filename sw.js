@@ -1,4 +1,4 @@
-var CACHE_NAME = 'bassa-v1';
+var CACHE_NAME = 'bassa-v2';
 var URLS_TO_CACHE = [
   './',
   'index.html',
