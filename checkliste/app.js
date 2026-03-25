@@ -61,6 +61,67 @@ function dbDelete(id) {
   });
 }
 
+/* ===== Sidebar Toggle ===== */
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+/* ===== Section Navigation ===== */
+var currentSection = 'checkliste';
+
+function setTopbarContext(ctx) {
+  document.getElementById('ctxDashboard').style.display = ctx === 'dashboard' ? '' : 'none';
+  document.getElementById('ctxDetail').style.display = ctx === 'detail' ? '' : 'none';
+  document.getElementById('ctxFotodoku').style.display = ctx === 'fotodoku' ? '' : 'none';
+  var burger = document.getElementById('btnBurger');
+  if (ctx === 'dashboard') {
+    burger.classList.remove('hide-mobile');
+  } else {
+    burger.classList.add('hide-mobile');
+  }
+}
+
+function switchSection(section) {
+  currentSection = section;
+  closeSidebar();
+
+  document.querySelectorAll('.nav-item[data-section]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.section === section);
+  });
+
+  var viewDash = document.getElementById('viewDashboard');
+  var viewDetail = document.getElementById('viewDetail');
+  var viewFoto = document.getElementById('viewFotodoku');
+
+  if (section === 'checkliste') {
+    viewFoto.style.display = 'none';
+    if (currentProjectId) {
+      viewDash.style.display = 'none';
+      viewDetail.style.display = '';
+      setTopbarContext('detail');
+    } else {
+      viewDash.style.display = '';
+      viewDetail.style.display = 'none';
+      setTopbarContext('dashboard');
+      loadDashboard();
+    }
+  } else if (section === 'fotodoku') {
+    viewDash.style.display = 'none';
+    viewDetail.style.display = 'none';
+    viewFoto.style.display = '';
+    setTopbarContext('fotodoku');
+    var frame = document.getElementById('fotodokuFrame');
+    if (frame.src === 'about:blank' || !frame.src.includes('fotodoku')) {
+      frame.src = '../fotodoku/';
+    }
+  }
+}
+
 /* ===== Toast ===== */
 var toastTimer = null;
 function showToast(msg) {
@@ -76,6 +137,13 @@ function showDashboard() {
   currentProjectId = null;
   document.getElementById('viewDashboard').style.display = '';
   document.getElementById('viewDetail').style.display = 'none';
+  document.getElementById('viewFotodoku').style.display = 'none';
+  setTopbarContext('dashboard');
+  document.querySelectorAll('.nav-item[data-section]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.section === 'checkliste');
+  });
+  currentSection = 'checkliste';
+  closeSidebar();
   loadDashboard();
 }
 
@@ -83,6 +151,9 @@ function showDetail(id) {
   currentProjectId = id;
   document.getElementById('viewDashboard').style.display = 'none';
   document.getElementById('viewDetail').style.display = '';
+  document.getElementById('viewFotodoku').style.display = 'none';
+  setTopbarContext('detail');
+  closeSidebar();
   loadProject(id);
 }
 
@@ -161,7 +232,9 @@ async function loadProject(id) {
 
   FIELDS.forEach(function(f) {
     var el = document.getElementById(f);
-    if (el) el.value = p[f] || '';
+    if (el) {
+      el.value = p[f] || '';
+    }
   });
 
   if (Array.isArray(p.checklist)) {
@@ -558,9 +631,20 @@ function copySummary() {
 }
 
 /* ===== Event Listeners ===== */
+document.getElementById('btnBurger').addEventListener('click', openSidebar);
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+document.querySelectorAll('.nav-item[data-section]').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    e.preventDefault();
+    switchSection(el.dataset.section);
+  });
+});
+
 document.getElementById('btnNewProject').addEventListener('click', createNewProject);
 document.getElementById('btnNewEmpty').addEventListener('click', createNewProject);
 document.getElementById('btnBack').addEventListener('click', showDashboard);
+document.getElementById('btnBackFoto').addEventListener('click', showDashboard);
 document.getElementById('btnDelete').addEventListener('click', deleteProject);
 document.getElementById('btnExport').addEventListener('click', exportProject);
 document.getElementById('btnCopy').addEventListener('click', copySummary);
@@ -589,6 +673,32 @@ document.getElementById('importFile').addEventListener('change', function(e) {
   if (e.target.files[0]) importProject(e.target.files[0]);
   e.target.value = '';
 });
+
+document.getElementById('btnFotoPick').addEventListener('click', function() {
+  var frame = document.getElementById('fotodokuFrame');
+  try {
+    var fi = frame.contentDocument.getElementById('fileInput');
+    if (fi) { fi.click(); return; }
+  } catch(e) {}
+  if (frame && frame.contentWindow) {
+    frame.contentWindow.postMessage({ action: 'pickImages' }, '*');
+  }
+});
+document.getElementById('btnFotoExport').addEventListener('click', function() {
+  var frame = document.getElementById('fotodokuFrame');
+  try {
+    var win = frame.contentWindow;
+    if (win && typeof win.saveAsPdf === 'function') { win.saveAsPdf(); return; }
+  } catch(e) {}
+  if (frame && frame.contentWindow) {
+    frame.contentWindow.postMessage({ action: 'exportPdf' }, '*');
+  }
+});
+
+/* ===== Datepicker ===== */
+if (typeof BassaDatepicker !== 'undefined') {
+  new BassaDatepicker(document.getElementById('beginn'));
+}
 
 /* ===== Init ===== */
 openDB().then(function() {

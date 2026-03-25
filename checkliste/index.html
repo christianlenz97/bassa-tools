@@ -3,142 +3,190 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Baustellen-Checkliste</title>
+<title>BASSA Dach - Admin</title>
 
-<meta name="theme-color" content="#2f343a">
+<meta name="theme-color" content="#1a1d21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Checkliste">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<meta name="apple-mobile-web-app-title" content="BASSA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="manifest" href="manifest.json">
 
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../shared/datepicker.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../shared/datepicker.js"></script>
 </head>
 <body>
 
-<!-- ===== DASHBOARD VIEW ===== -->
-<div id="viewDashboard" class="view">
-  <div class="dash-header">
-    <div class="dash-header-inner">
-      <div>
-        <h1>Baustellen-Checkliste</h1>
-        <p class="dash-subtitle">BASSA Dach</p>
-      </div>
-      <div class="dash-header-btns">
-        <button class="btn-fab" id="btnNewProject">+ NEUE BAUSTELLE</button>
-        <button class="btn-fab btn-fab-outline" id="btnImportDash">IMPORTIEREN</button>
-      </div>
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <img class="brand-logo" src="assets/icon-192.png" width="36" height="36" alt="BASSA">
+    <div>
+      <div class="brand-name">BASSA Solutions</div>
+      <div class="brand-sub">Intern</div>
     </div>
   </div>
-
-  <div class="dash-content">
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card stat-total"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt</div></div>
-      <div class="stat-card stat-open"><div class="stat-num" id="statOpen">0</div><div class="stat-label">Offen</div></div>
-      <div class="stat-card stat-wip"><div class="stat-num" id="statWip">0</div><div class="stat-label">In Arbeit</div></div>
-      <div class="stat-card stat-done"><div class="stat-num" id="statDone">0</div><div class="stat-label">Bestellbereit</div></div>
-    </div>
-
-    <div class="section-head">
-      <h2>Alle Baustellen</h2>
-    </div>
-    <div id="projectList" class="project-list"></div>
-    <div id="emptyState" class="empty-state" style="display:none;">
-      <p>Noch keine Baustellen angelegt.</p>
-      <button class="btn-primary" id="btnNewEmpty">+ Erste Baustelle anlegen</button>
-    </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">MENU</div>
+    <a class="nav-item active" data-section="checkliste">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M7 8.5l2 2 3.5-3.5"/></svg>
+      Baustellen-Checkliste
+    </a>
+    <a class="nav-item" data-section="fotodoku">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="2"/><circle cx="6.5" cy="6.5" r="1.5"/><path d="M16 11l-4-4-8 8"/></svg>
+      Fotodokumentation
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-label">v1.0</div>
   </div>
-</div>
+</aside>
 
-<!-- ===== DETAIL VIEW ===== -->
-<div id="viewDetail" class="view" style="display:none;">
-  <div class="detail-header">
-    <div class="detail-header-inner">
+<!-- Main content -->
+<main class="main" id="mainContent">
+
+  <!-- Top bar (mobile burger + page title + context buttons) -->
+  <div class="topbar" id="topbar">
+    <button class="burger" id="btnBurger">
+      <span></span><span></span><span></span>
+    </button>
+    <!-- Dashboard context -->
+    <div class="topbar-ctx" id="ctxDashboard">
+      <div class="topbar-title">Baustellen-Checkliste</div>
+      <div class="topbar-right">
+        <button class="btn-fab btn-fab-outline" id="btnImportDash">Importieren</button>
+        <button class="btn-fab" id="btnNewProject">+ Neue Baustelle</button>
+      </div>
+    </div>
+    <!-- Detail context -->
+    <div class="topbar-ctx" id="ctxDetail" style="display:none;">
       <button class="btn-back" id="btnBack">&#8592; Zurück</button>
-      <div class="detail-title" id="detailTitle">Neue Baustelle</div>
-      <div class="detail-actions">
-        <button class="btn-sm btn-outline" id="btnExport">PDF EXPORT</button>
-        <button class="btn-sm btn-danger" id="btnDelete">LÖSCHEN</button>
+      <div class="topbar-title" id="detailTitle">Neue Baustelle</div>
+      <div class="topbar-right">
+        <button class="btn-fab btn-fab-outline btn-fab-danger" id="btnDelete">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h11"/><path d="M4.5 4V3a1 1 0 011-1h3.5a1 1 0 011 1v1"/><path d="M11.5 4v8a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 12V4"/><line x1="6" y1="6.5" x2="6" y2="10.5"/><line x1="8.5" y1="6.5" x2="8.5" y2="10.5"/></svg>
+        </button>
+        <button class="btn-fab" id="btnExport">PDF EXPORT</button>
+      </div>
+    </div>
+    <!-- Fotodoku context -->
+    <div class="topbar-ctx" id="ctxFotodoku" style="display:none;">
+      <button class="btn-back" id="btnBackFoto">&#8592; Zurück</button>
+      <div class="topbar-title">Fotodokumentation</div>
+      <div class="topbar-right">
+        <button class="btn-fab btn-fab-outline btn-fab-icon" id="btnFotoPick" title="Bilder hinzufügen">
+          <img src="assets/add-image.png" width="18" height="18" alt="Bilder hinzufügen">
+        </button>
+        <button class="btn-fab" id="btnFotoExport">PDF EXPORT</button>
       </div>
     </div>
   </div>
 
-  <div class="detail-content">
-    <div class="detail-grid">
-      <!-- LEFT: Form -->
-      <div class="card">
-        <div class="card-head">
-          <h2>Stammdaten</h2>
-          <span class="badge badge-orange">CHEF-CHECK</span>
-        </div>
-        <p class="card-sub">Grunddaten und wichtige Infos zur Ausführung.</p>
-        <div class="form-grid">
-          <div class="field"><label for="projekt">Baustelle / Projekt</label><input id="projekt" type="text" placeholder="z. B. Schönwetter-Bau"></div>
-          <div class="field"><label for="kunde">Kunde / Bauherr</label><input id="kunde" type="text" placeholder="Name / Firma"></div>
-          <div class="field"><label for="adresse">Baustellenadresse</label><input id="adresse" type="text" placeholder="Adresse"></div>
-          <div class="field"><label for="ansprechperson">Ansprechperson vor Ort</label><input id="ansprechperson" type="text" placeholder="Name"></div>
-          <div class="field"><label for="telefon">Telefon Ansprechpartner</label><input id="telefon" type="text" placeholder="Telefonnummer"></div>
-          <div class="field"><label for="beginn">Beginn Dachdecker</label><input id="beginn" type="date"></div>
-          <div class="field"><label for="geruest">Gerüst</label><select id="geruest"><option value="">Bitte wählen</option><option>Ja, steht bereit</option><option>Ja, wird noch gestellt</option><option>Nein, wir müssen organisieren</option><option>Nicht erforderlich</option></select></div>
-          <div class="field"><label for="pv">PV-Anlage</label><select id="pv"><option value="">Bitte wählen</option><option>Nein</option><option>Ja, Bestand</option><option>Ja, kommt neu</option><option>Unklar / abklären</option></select></div>
-          <div class="field"><label for="spenglereiFarbe">Farbe Spenglerei</label><input id="spenglereiFarbe" type="text" placeholder="z. B. Anthrazit, RAL, PREFA"></div>
-          <div class="field"><label for="spenglereiMaterial">Material Spenglerei</label><input id="spenglereiMaterial" type="text" placeholder="z. B. Alu, Rheinzink, Kupfer"></div>
-          <div class="field full"><label for="eindeckung">Eindeckung / Dachaufbau</label><input id="eindeckung" type="text" placeholder="z. B. Ziegel, Blechdach, Foliendach"></div>
-          <div class="field full"><label for="zubehoer">Zubehör / Zusatzteile</label><textarea id="zubehoer" placeholder="z. B. WC-Entlüfter, Schneefang, Dachhaken ..."></textarea></div>
-          <div class="field full"><label for="notiz">Interne Notizen</label><textarea id="notiz" placeholder="Sonderwünsche, Rückfragen, Besonderheiten ..."></textarea></div>
-        </div>
+  <!-- ===== DASHBOARD VIEW ===== -->
+  <div id="viewDashboard" class="view">
+    <div class="dash-content">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card stat-total"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt</div></div>
+        <div class="stat-card stat-open"><div class="stat-num" id="statOpen">0</div><div class="stat-label">Offen</div></div>
+        <div class="stat-card stat-wip"><div class="stat-num" id="statWip">0</div><div class="stat-label">In Arbeit</div></div>
+        <div class="stat-card stat-done"><div class="stat-num" id="statDone">0</div><div class="stat-label">Bestellbereit</div></div>
       </div>
 
-      <!-- RIGHT: Checklist + Summary -->
-      <div class="detail-right">
+      <div class="section-head"><h2>Alle Baustellen</h2></div>
+      <div id="projectList" class="project-list"></div>
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <p>Noch keine Baustellen angelegt.</p>
+        <button class="btn-primary" id="btnNewEmpty">+ Erste Baustelle anlegen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DETAIL VIEW ===== -->
+  <div id="viewDetail" class="view" style="display:none;">
+
+    <div class="detail-content">
+      <div class="detail-grid">
         <div class="card">
           <div class="card-head">
-            <h2>Fortschritt</h2>
-            <span class="pill" id="statusPill">OFFEN</span>
+            <h2>Stammdaten</h2>
+            <span class="badge badge-orange">CHEF-CHECK</span>
           </div>
-          <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-          <div class="progress-text" id="progressText">0 % erledigt</div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><h2>Pflicht-Checkliste</h2></div>
-          <div class="check-grid" id="checklist">
-            <label class="check-item"><input type="checkbox" data-label="Auftrag vorhanden"><div><strong>Auftrag vorhanden</strong><span>Beauftragung sauber abgelegt</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Pläne vorhanden"><div><strong>Pläne vorhanden</strong><span>Planunterlagen / Skizzen liegen vor</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Farbe geklärt"><div><strong>Farbe geklärt</strong><span>Farbe Spenglerei bestätigt</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Material geklärt"><div><strong>Material geklärt</strong><span>Material Spenglerei bestätigt</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Eindeckung geklärt"><div><strong>Eindeckung geklärt</strong><span>Dachdeckung / Aufbau fixiert</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Zubehör geklärt"><div><strong>Zubehör geklärt</strong><span>Alle Zusatzteile abgestimmt</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="PV abgeklärt"><div><strong>PV abgeklärt</strong><span>Bestand / Neu / Einfluss auf Ausführung</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Beginn geklärt"><div><strong>Beginn geklärt</strong><span>Starttermin für Dachdecker fix</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Gerüst geklärt"><div><strong>Gerüst geklärt</strong><span>Steht bereit oder organisiert</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Ansprechperson geklärt"><div><strong>Ansprechperson geklärt</strong><span>Kontakt während Ausführung fix</span></div></label>
-            <label class="check-item"><input type="checkbox" data-label="Material bestellbereit"><div><strong>Material bestellbereit</strong><span>Alles vollständig für Bestellung</span></div></label>
-          </div>
-          <div class="check-actions">
-            <button class="btn-sm btn-dark" id="btnCheckAll">ALLES ABHAKEN</button>
-            <button class="btn-sm btn-outline" id="btnUncheckAll">ABHAKEN LÖSCHEN</button>
+          <p class="card-sub">Grunddaten und wichtige Infos zur Ausführung.</p>
+          <div class="form-grid">
+            <div class="field"><label for="projekt">Baustelle / Projekt</label><input id="projekt" type="text" placeholder="z. B. Schönwetter-Bau"></div>
+            <div class="field"><label for="kunde">Kunde / Bauherr</label><input id="kunde" type="text" placeholder="Name / Firma"></div>
+            <div class="field"><label for="adresse">Baustellenadresse</label><input id="adresse" type="text" placeholder="Adresse"></div>
+            <div class="field"><label for="ansprechperson">Ansprechperson vor Ort</label><input id="ansprechperson" type="text" placeholder="Name"></div>
+            <div class="field"><label for="telefon">Telefon Ansprechpartner</label><input id="telefon" type="text" placeholder="Telefonnummer"></div>
+            <div class="field"><label for="beginn">Beginn Dachdecker</label><input id="beginn" type="text" placeholder="Datum wählen" autocomplete="off"></div>
+            <div class="field"><label for="geruest">Gerüst</label><select id="geruest"><option value="">Bitte wählen</option><option>Ja, steht bereit</option><option>Ja, wird noch gestellt</option><option>Nein, wir müssen organisieren</option><option>Nicht erforderlich</option></select></div>
+            <div class="field"><label for="pv">PV-Anlage</label><select id="pv"><option value="">Bitte wählen</option><option>Nein</option><option>Ja, Bestand</option><option>Ja, kommt neu</option><option>Unklar / abklären</option></select></div>
+            <div class="field"><label for="spenglereiFarbe">Farbe Spenglerei</label><input id="spenglereiFarbe" type="text" placeholder="z. B. Anthrazit, RAL, PREFA"></div>
+            <div class="field"><label for="spenglereiMaterial">Material Spenglerei</label><input id="spenglereiMaterial" type="text" placeholder="z. B. Alu, Rheinzink, Kupfer"></div>
+            <div class="field full"><label for="eindeckung">Eindeckung / Dachaufbau</label><input id="eindeckung" type="text" placeholder="z. B. Ziegel, Blechdach, Foliendach"></div>
+            <div class="field full"><label for="zubehoer">Zubehör / Zusatzteile</label><textarea id="zubehoer" placeholder="z. B. WC-Entlüfter, Schneefang, Dachhaken ..."></textarea></div>
+            <div class="field full"><label for="notiz">Interne Notizen</label><textarea id="notiz" placeholder="Sonderwünsche, Rückfragen, Besonderheiten ..."></textarea></div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-head">
-            <h2>Zusammenfassung</h2>
-            <button class="btn-sm btn-dark" id="btnCopy">KOPIEREN</button>
+        <div class="detail-right">
+          <div class="card">
+            <div class="card-head">
+              <h2>Fortschritt</h2>
+              <span class="pill" id="statusPill">OFFEN</span>
+            </div>
+            <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+            <div class="progress-text" id="progressText">0 % erledigt</div>
           </div>
-          <p class="card-sub">Zum Kopieren in Mail, WhatsApp oder Baustellen-Ordner.</p>
-          <div class="summary" id="summaryBox">Noch keine Daten eingetragen.</div>
+
+          <div class="card">
+            <div class="card-head"><h2>Pflicht-Checkliste</h2></div>
+            <div class="check-grid" id="checklist">
+              <label class="check-item"><input type="checkbox" data-label="Auftrag vorhanden"><div><strong>Auftrag vorhanden</strong><span>Beauftragung sauber abgelegt</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Pläne vorhanden"><div><strong>Pläne vorhanden</strong><span>Planunterlagen / Skizzen liegen vor</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Farbe geklärt"><div><strong>Farbe geklärt</strong><span>Farbe Spenglerei bestätigt</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Material geklärt"><div><strong>Material geklärt</strong><span>Material Spenglerei bestätigt</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Eindeckung geklärt"><div><strong>Eindeckung geklärt</strong><span>Dachdeckung / Aufbau fixiert</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Zubehör geklärt"><div><strong>Zubehör geklärt</strong><span>Alle Zusatzteile abgestimmt</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="PV abgeklärt"><div><strong>PV abgeklärt</strong><span>Bestand / Neu / Einfluss auf Ausführung</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Beginn geklärt"><div><strong>Beginn geklärt</strong><span>Starttermin für Dachdecker fix</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Gerüst geklärt"><div><strong>Gerüst geklärt</strong><span>Steht bereit oder organisiert</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Ansprechperson geklärt"><div><strong>Ansprechperson geklärt</strong><span>Kontakt während Ausführung fix</span></div></label>
+              <label class="check-item"><input type="checkbox" data-label="Material bestellbereit"><div><strong>Material bestellbereit</strong><span>Alles vollständig für Bestellung</span></div></label>
+            </div>
+            <div class="check-actions">
+              <button class="btn-sm btn-dark" id="btnCheckAll">ALLES ABHAKEN</button>
+              <button class="btn-sm btn-outline" id="btnUncheckAll">ABHAKEN LÖSCHEN</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2>Zusammenfassung</h2>
+              <button class="btn-sm btn-dark" id="btnCopy">KOPIEREN</button>
+            </div>
+            <p class="card-sub">Zum Kopieren in Mail, WhatsApp oder Baustellen-Ordner.</p>
+            <div class="summary" id="summaryBox">Noch keine Daten eingetragen.</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Toast -->
+  <!-- ===== FOTODOKU VIEW (iframe) ===== -->
+  <div id="viewFotodoku" class="view" style="display:none;">
+    <iframe id="fotodokuFrame" class="embed-frame" src="about:blank"></iframe>
+  </div>
+
+</main>
+
 <div id="toast" class="toast"></div>
-
-<!-- Import -->
 <input id="importFile" type="file" accept=".json,.pdf" style="display:none">
 
 <script src="app.js"></script>

@@ -1,4 +1,4 @@
-var CACHE_NAME = 'fotodoku-v5';
+var CACHE_NAME = 'fotodoku-v17';
 
 var ASSETS_TO_CACHE = [
   './',
@@ -11,6 +11,11 @@ var ASSETS_TO_CACHE = [
   './assets/footer.png',
   './assets/icon-192.png',
   './assets/icon-512.png',
+  './assets/apple-touch-icon.png',
+  './assets/favicon-32.png',
+  './assets/add-image.png',
+  '../shared/datepicker.js',
+  '../shared/datepicker.css',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];

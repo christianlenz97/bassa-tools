@@ -108,6 +108,21 @@ async function loadSavedData() {
   render();
 }
 
+/* ---- Iframe detection: hide topbar when embedded ---- */
+if (window !== window.top) {
+  var topbarEl = document.getElementById('fotodokuTopbar');
+  if (topbarEl) topbarEl.style.display = 'none';
+
+  window.addEventListener('message', function(e) {
+    if (!e.data || !e.data.action) return;
+    if (e.data.action === 'pickImages') {
+      document.getElementById('fileInput').click();
+    } else if (e.data.action === 'exportPdf') {
+      saveAsPdf();
+    }
+  });
+}
+
 /* ---- DOM references ---- */
 
 var fileInput = document.getElementById('fileInput');
@@ -119,7 +134,11 @@ var customerName = document.getElementById('customerName');
 var objectName = document.getElementById('objectName');
 var docDate = document.getElementById('docDate');
 var layoutMode = document.getElementById('layoutMode');
-var dropzone = document.getElementById('dropzone');
+
+if (typeof BassaDatepicker !== 'undefined') {
+  new BassaDatepicker(docDate, { defaultToday: true });
+}
+var dragOverlay = document.getElementById('dragOverlay');
 var thumbbar = document.getElementById('thumbbar');
 var pages = document.getElementById('pages');
 
@@ -134,6 +153,11 @@ fileInput.addEventListener('change', function(e) {
   fileInput.value = '';
 });
 pdfBtn.addEventListener('click', function() { saveAsPdf(); });
+
+var pickBtnTop = document.getElementById('pickBtnTop');
+var pdfBtnTop = document.getElementById('pdfBtnTop');
+if (pickBtnTop) pickBtnTop.addEventListener('click', function() { fileInput.click(); });
+if (pdfBtnTop) pdfBtnTop.addEventListener('click', function() { saveAsPdf(); });
 
 clearBtn.addEventListener('click', function() {
   var ok1 = window.confirm('Wirklich ALLE Daten und Bilder löschen?');
@@ -167,17 +191,26 @@ layoutMode.addEventListener('change', function() {
   saveSettings();
 });
 
-['dragenter','dragover'].forEach(function(evt) {
-  document.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); }, false);
-  dropzone.addEventListener(evt, function() { dropzone.style.background = '#ffe7dc'; }, false);
-});
-['dragleave','drop'].forEach(function(evt) {
-  document.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); }, false);
-  dropzone.addEventListener(evt, function() { dropzone.style.background = '#fff7f3'; }, false);
-});
-dropzone.addEventListener('drop', function(e) {
+var dragCounter = 0;
+document.addEventListener('dragenter', function(e) {
+  e.preventDefault(); e.stopPropagation();
+  dragCounter++;
+  if (dragCounter === 1) dragOverlay.classList.add('show');
+}, false);
+document.addEventListener('dragover', function(e) {
+  e.preventDefault(); e.stopPropagation();
+}, false);
+document.addEventListener('dragleave', function(e) {
+  e.preventDefault(); e.stopPropagation();
+  dragCounter--;
+  if (dragCounter <= 0) { dragCounter = 0; dragOverlay.classList.remove('show'); }
+}, false);
+document.addEventListener('drop', function(e) {
+  e.preventDefault(); e.stopPropagation();
+  dragCounter = 0;
+  dragOverlay.classList.remove('show');
   var dt = e.dataTransfer;
-  if (dt && dt.files) addFiles(dt.files);
+  if (dt && dt.files && dt.files.length) addFiles(dt.files);
 }, false);
 
 /* ---- Image compression ---- */
@@ -237,6 +270,7 @@ function escapeHtml(str) {
 
 function formatDate(value) {
   if (!value) return '';
+  if (value.indexOf('.') !== -1) return value;
   var parts = value.split('-');
   if (parts.length !== 3) return value;
   return parts[2] + '.' + parts[1] + '.' + parts[0];
@@ -265,13 +299,25 @@ function onCaptionInput(globalIndex, value) {
 
 /* ---- Rendering ---- */
 
+function removeImage(idx) {
+  if (idx < 0 || idx >= images.length) return;
+  images.splice(idx, 1);
+  saveImages();
+  render();
+}
+
 function renderThumbs() {
   thumbbar.innerHTML = '';
   images.forEach(function(img, idx) {
     var d = document.createElement('div');
     d.className = 'thumb';
     d.title = (idx + 1) + ': ' + img.name;
-    d.innerHTML = '<img src="' + img.src + '" alt="">';
+    d.innerHTML = '<img src="' + img.src + '" alt="">' +
+      '<button class="thumb-remove" type="button" data-idx="' + idx + '">&times;</button>';
+    d.querySelector('.thumb-remove').addEventListener('click', function(e) {
+      e.stopPropagation();
+      removeImage(idx);
+    });
     thumbbar.appendChild(d);
   });
 }
@@ -320,10 +366,13 @@ function createPageWrap(pageElement, pageNo, isGridPage, captionInputsHtml) {
 function renderSlot(item, label, globalIndex) {
   var captionText = (item && item.caption) ? escapeHtml(item.caption) : '';
   var idxAttr = (globalIndex >= 0) ? ' data-img-idx="' + globalIndex + '"' : '';
+  var removeBtn = (item && globalIndex >= 0)
+    ? '<button class="slot-remove" type="button" onclick="removeImage(' + globalIndex + ')">&times;</button>'
+    : '';
   return '<div class="slot">' +
     '<div class="slot-image-area">' +
     (item
-      ? '<span class="img-number">' + label + '</span><img src="' + item.src + '" alt="">'
+      ? '<span class="img-number">' + label + '</span>' + removeBtn + '<img src="' + item.src + '" alt="">'
       : '<div class="placeholder">FREI</div>') +
     '</div>' +
     '<div class="slot-caption"' + idxAttr + '>' + captionText + '</div>' +
