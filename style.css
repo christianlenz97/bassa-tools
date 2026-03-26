@@ -105,8 +105,8 @@ body {
 .topbar {
   background: var(--white);
   border-bottom: 1px solid var(--line);
-  padding: 0 24px;
-  height: 56px;
+  padding: env(safe-area-inset-top, 0px) 24px 0;
+  min-height: calc(56px + env(safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
   gap: 12px;
@@ -503,13 +503,9 @@ input:focus, select:focus, textarea:focus {
   .sidebar.open { transform: translateX(0); }
   .main { margin-left: 0; }
   .topbar {
-    padding: 0 12px;
-    padding-top: env(safe-area-inset-top, 0px);
-    height: auto;
-    min-height: 52px;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+    min-height: calc(52px + env(safe-area-inset-top, 0px));
     gap: 8px;
-    padding-bottom: 8px;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
   }
   .topbar-ctx { gap: 8px; }
   .topbar-title { font-size: 14px; }

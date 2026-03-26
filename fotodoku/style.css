@@ -500,14 +500,17 @@ select {
   .thumb-del { opacity: 1; }
 }
 
-/* ---- Responsive: < 1180px => single column ---- */
+/* ---- Responsive: < 1180px => single column, scaled pages ---- */
 @media (max-width: 1180px) {
   .wrap { grid-template-columns: 1fr; }
-  .preview-panel { padding: 0; }
+  .preview-panel { padding: 8px; }
   .page {
-    width: 100%;
-    min-height: auto;
-    aspect-ratio: 210 / 297;
+    transform: scale(var(--page-scale, 0.5));
+    transform-origin: top center;
+    margin-bottom: calc(var(--page-h) * (var(--page-scale, 0.5) - 1));
+  }
+  .page-actions {
+    width: calc(var(--page-w) * var(--page-scale, 0.5));
   }
 }
 

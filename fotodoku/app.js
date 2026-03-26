@@ -501,5 +501,17 @@ function render() {
   }
 }
 
+/* ---- Responsive page scaling ---- */
+function updatePageScale() {
+  var previewPanel = document.querySelector('.preview-panel');
+  if (!previewPanel) return;
+  var availableWidth = previewPanel.clientWidth - 24;
+  var pageWidthPx = 794;
+  var scale = Math.min(1, availableWidth / pageWidthPx);
+  document.documentElement.style.setProperty('--page-scale', scale.toFixed(3));
+}
+window.addEventListener('resize', updatePageScale);
+updatePageScale();
+
 /* ---- Init: load saved data, then render ---- */
 loadSavedData();
