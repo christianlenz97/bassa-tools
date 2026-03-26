@@ -99,13 +99,13 @@
       <div class="topbar-title">Baustellen-Checkliste</div>
       <div class="topbar-right">
         <button class="btn-fab btn-fab-outline" id="btnImportDash">Importieren</button>
-        <button class="btn-fab" id="btnNewProject">+ Neue Baustelle</button>
+        <button class="btn-fab" id="btnNewProject">+ Neues Projekt</button>
       </div>
     </div>
     <!-- Detail context -->
     <div class="topbar-ctx" id="ctxDetail" style="display:none;">
       <button class="btn-back" id="btnBack">&#8592; Zurück</button>
-      <div class="topbar-title" id="detailTitle">Neue Baustelle</div>
+      <div class="topbar-title" id="detailTitle">Neues Projekt</div>
       <div class="topbar-right">
         <button class="btn-fab btn-fab-outline btn-fab-danger" id="btnDelete">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h11"/><path d="M4.5 4V3a1 1 0 011-1h3.5a1 1 0 011 1v1"/><path d="M11.5 4v8a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 12V4"/><line x1="6" y1="6.5" x2="6" y2="10.5"/><line x1="8.5" y1="6.5" x2="8.5" y2="10.5"/></svg>
@@ -151,7 +151,7 @@
       <div id="projectList" class="project-list"></div>
       <div id="emptyState" class="empty-state" style="display:none;">
         <p>Noch keine Baustellen angelegt.</p>
-        <button class="btn-primary" id="btnNewEmpty">+ Erste Baustelle anlegen</button>
+        <button class="btn-primary" id="btnNewEmpty">+ Erstes Projekt anlegen</button>
       </div>
     </div>
   </div>
@@ -168,17 +168,17 @@
           </div>
           <p class="card-sub">Grunddaten und wichtige Infos zur Ausführung.</p>
           <div class="form-grid">
-            <div class="field"><label for="projekt">Baustelle / Projekt</label><input id="projekt" type="text" placeholder="z. B. Schönwetter-Bau"></div>
-            <div class="field"><label for="kunde">Kunde / Bauherr</label><input id="kunde" type="text" placeholder="Name / Firma"></div>
+            <div class="field"><label for="projekt">Kundenname</label><input id="projekt" type="text" placeholder="Name / Firma"></div>
+            <div class="field"><label for="kunde">Bauvorhaben</label><input id="kunde" type="text" placeholder="z. B. Dachsanierung Musterstraße 1"></div>
             <div class="field"><label for="adresse">Baustellenadresse</label><input id="adresse" type="text" placeholder="Adresse"></div>
-            <div class="field"><label for="ansprechperson">Ansprechperson vor Ort</label><input id="ansprechperson" type="text" placeholder="Name"></div>
+            <div class="field"><label for="ansprechperson">Ansprechperson vor Ort</label><input id="ansprechperson" type="text" placeholder="Name + Telefonnummer"></div>
             <div class="field"><label for="telefon">Telefon Ansprechpartner</label><input id="telefon" type="text" placeholder="Telefonnummer"></div>
-            <div class="field"><label for="beginn">Beginn Dachdecker</label><input id="beginn" type="text" placeholder="Datum wählen" autocomplete="off"></div>
+            <div class="field"><label for="beginn">Beginn unserer Leistung</label><input id="beginn" type="text" placeholder="Datum wählen" autocomplete="off"></div>
             <div class="field"><label for="geruest">Gerüst</label><select id="geruest"><option value="">Bitte wählen</option><option>Ja, steht bereit</option><option>Ja, wird noch gestellt</option><option>Nein, wir müssen organisieren</option><option>Nicht erforderlich</option></select></div>
             <div class="field"><label for="pv">PV-Anlage</label><select id="pv"><option value="">Bitte wählen</option><option>Nein</option><option>Ja, Bestand</option><option>Ja, kommt neu</option><option>Unklar / abklären</option></select></div>
             <div class="field"><label for="spenglereiFarbe">Farbe Spenglerei</label><input id="spenglereiFarbe" type="text" placeholder="z. B. Anthrazit, RAL, PREFA"></div>
             <div class="field"><label for="spenglereiMaterial">Material Spenglerei</label><input id="spenglereiMaterial" type="text" placeholder="z. B. Alu, Rheinzink, Kupfer"></div>
-            <div class="field full"><label for="eindeckung">Eindeckung / Dachaufbau</label><input id="eindeckung" type="text" placeholder="z. B. Ziegel, Blechdach, Foliendach"></div>
+            <div class="field full"><label for="eindeckung">Dacheindeckung</label><input id="eindeckung" type="text" placeholder="z. B. Ziegel, Blechdach, Foliendach"></div>
             <div class="field full"><label for="zubehoer">Zubehör / Zusatzteile</label><textarea id="zubehoer" placeholder="z. B. WC-Entlüfter, Schneefang, Dachhaken ..."></textarea></div>
             <div class="field full"><label for="notiz">Interne Notizen</label><textarea id="notiz" placeholder="Sonderwünsche, Rückfragen, Besonderheiten ..."></textarea></div>
           </div>

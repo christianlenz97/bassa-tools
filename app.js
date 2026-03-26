@@ -251,7 +251,7 @@ async function loadDashboard() {
     card.className = 'project-card';
     card.innerHTML =
       '<div class="project-card-info">' +
-        '<h3>' + esc(p.projekt || 'Neue Baustelle') + '</h3>' +
+        '<h3>' + esc(p.projekt || 'Neues Projekt') + '</h3>' +
         '<div class="pc-sub">' + esc(p.kunde || '-') + ' &middot; ' + esc(p.adresse || '-') + '</div>' +
       '</div>' +
       '<div class="project-card-progress">' +
@@ -300,7 +300,7 @@ async function loadProject(id) {
   }
 
   updateDetailUI();
-  document.getElementById('detailTitle').textContent = p.projekt || 'Neue Baustelle';
+  document.getElementById('detailTitle').textContent = p.projekt || 'Neues Projekt';
 }
 
 function collectProjectData() {
@@ -326,7 +326,7 @@ function autoSave() {
   saveTimer = setTimeout(async function() {
     var data = collectProjectData();
     await sbUpsertProject(data);
-    document.getElementById('detailTitle').textContent = data.projekt || 'Neue Baustelle';
+    document.getElementById('detailTitle').textContent = data.projekt || 'Neues Projekt';
   }, 600);
 }
 
@@ -361,17 +361,17 @@ function generateSummary() {
   var offene = d.checklist.filter(function(x) { return !x.checked; }).map(function(x) { return '  * ' + x.label; });
   var txt =
     'BAUSTELLEN-CHECKLISTE\n\n' +
-    'Baustelle: ' + valueOrDash(d.projekt) + '\n' +
-    'Kunde / Bauherr: ' + valueOrDash(d.kunde) + '\n' +
+    'Kundenname: ' + valueOrDash(d.projekt) + '\n' +
+    'Bauvorhaben: ' + valueOrDash(d.kunde) + '\n' +
     'Adresse: ' + valueOrDash(d.adresse) + '\n\n' +
     'Ansprechperson: ' + valueOrDash(d.ansprechperson) + '\n' +
     'Telefon: ' + valueOrDash(d.telefon) + '\n' +
-    'Beginn Dachdecker: ' + valueOrDash(d.beginn) + '\n' +
+    'Beginn unserer Leistung: ' + valueOrDash(d.beginn) + '\n' +
     'Gerüst: ' + valueOrDash(d.geruest) + '\n' +
     'PV-Anlage: ' + valueOrDash(d.pv) + '\n\n' +
     'Farbe Spenglerei: ' + valueOrDash(d.spenglerei_farbe) + '\n' +
     'Material Spenglerei: ' + valueOrDash(d.spenglerei_material) + '\n' +
-    'Eindeckung / Dachaufbau: ' + valueOrDash(d.eindeckung) + '\n' +
+    'Dacheindeckung: ' + valueOrDash(d.eindeckung) + '\n' +
     'Zubehör / Zusatzteile: ' + valueOrDash(d.zubehoer) + '\n' +
     'Interne Notizen: ' + valueOrDash(d.notiz) + '\n\n' +
     'OFFENE PUNKTE:\n' +
@@ -446,7 +446,7 @@ function exportProject() {
     return;
   }
   var data = collectProjectData();
-  var name = (data.projekt || 'baustelle').replace(/[^\wäöüÄÖÜß\-]+/g, '_');
+  var name = (data.projekt || 'projekt').replace(/[^\wäöüÄÖÜß\-]+/g, '_');
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
@@ -498,17 +498,17 @@ function exportProject() {
   y += 7;
 
   var stamm = [
-    ['Baustelle / Projekt', data.projekt],
-    ['Kunde / Bauherr', data.kunde],
+    ['Kundenname', data.projekt],
+    ['Bauvorhaben', data.kunde],
     ['Adresse', data.adresse],
     ['Ansprechperson', data.ansprechperson],
     ['Telefon', data.telefon],
-    ['Beginn Dachdecker', data.beginn],
+    ['Beginn uns. Leistung', data.beginn],
     ['Geruest', data.geruest],
     ['PV-Anlage', data.pv],
     ['Farbe Spenglerei', data.spenglerei_farbe],
     ['Material Spenglerei', data.spenglerei_material],
-    ['Eindeckung', data.eindeckung],
+    ['Dacheindeckung', data.eindeckung],
     ['Zubehoer', data.zubehoer],
     ['Notizen', data.notiz]
   ];
