@@ -194,17 +194,7 @@ function showToast(msg) {
 /* ===== View switching ===== */
 function showDashboard() {
   currentProjectId = null;
-  document.getElementById('viewDashboard').style.display = '';
-  document.getElementById('viewDetail').style.display = 'none';
-  document.getElementById('viewFotodoku').style.display = 'none';
-  document.getElementById('viewMitteilung').style.display = 'none';
-  setTopbarContext('dashboard');
-  document.querySelectorAll('.nav-item[data-section]').forEach(function(el) {
-    el.classList.toggle('active', el.dataset.section === 'checkliste');
-  });
-  currentSection = 'checkliste';
-  closeSidebar();
-  loadDashboard();
+  switchSection('fotodoku');
 }
 
 function showDetail(id) {
