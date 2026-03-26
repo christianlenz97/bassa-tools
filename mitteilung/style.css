@@ -211,6 +211,15 @@ textarea.betreff-input { min-height: 52px; resize: vertical; }
 .content p {
   margin: 0 0 6mm;
 }
+.detail-list {
+  list-style: disc;
+  padding-left: 6mm;
+  margin: 0 0 6mm;
+  line-height: 2;
+}
+.detail-list li {
+  margin-bottom: 1mm;
+}
 .signature {
   margin-top: 14mm;
 }

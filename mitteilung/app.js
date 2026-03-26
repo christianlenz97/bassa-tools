@@ -335,19 +335,38 @@ function doPrint() {
   doc.text('Sehr geehrte Damen und Herren,', ML, y);
   y += 10;
 
-  var bodyText = 'Ihre Arbeiten wie beauftragt werden am ' + datum +
-    ' laut Angebot/Auftrag ' + nummer +
-    ' beim Bauvorhaben ' + objekt + ' durchgeführt.';
-  var bodyLines = doc.splitTextToSize(bodyText, contentW);
-  doc.text(bodyLines, ML, y);
-  y += bodyLines.length * 5.5 + 8;
+  doc.text('hiermit kündigen wir die Durchführung der beauftragten Arbeiten an:', ML, y);
+  y += 10;
 
-  var line2 = 'Wir bitten um Zugang zur Baustelle ab 7:00 Uhr und freien Zugang zu den relevanten Arbeitsbereichen.';
-  var line2Lines = doc.splitTextToSize(line2, contentW);
-  doc.text(line2Lines, ML, y);
-  y += line2Lines.length * 5.5 + 8;
+  var bulletX = ML + 4;
+  var bulletTextX = ML + 8;
+  var bullets = [
+    { label: 'Am: ', value: datum },
+    { label: 'Laut Angebot/Auftrag: ', value: nummer },
+    { label: 'Beim Bauvorhaben: ', value: objekt }
+  ];
+  bullets.forEach(function(b) {
+    doc.setFont('helvetica', 'normal');
+    doc.text('\u2022', ML, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(b.label, bulletTextX, y);
+    var labelW = doc.getTextWidth(b.label);
+    doc.setFont('helvetica', 'normal');
+    doc.text(b.value, bulletTextX + labelW, y);
+    y += 7;
+  });
+  y += 4;
 
-  doc.text('Bei Rückfragen stehen wir Ihnen gerne zur Verfügung.', ML, y);
+  doc.setFont('helvetica', 'normal');
+  var reqText = 'Wir ersuchen darum, dass zu diesem Termin ';
+  var reqBold = 'alle erforderlichen Zugänge sowie sämtliche laut Angebot/Auftrag vorgesehenen Voraussetzungen und Unterlagen vollständig bereitgestellt sind';
+  var reqEnd = ', damit die Arbeiten reibungslos durchgeführt werden können.';
+  var fullReqText = reqText + reqBold + reqEnd;
+  var reqLines = doc.splitTextToSize(fullReqText, contentW);
+  doc.text(reqLines, ML, y);
+  y += reqLines.length * 5.5 + 8;
+
+  doc.text('Bei Rückfragen stehen wir Ihnen jederzeit gerne zur Verfügung.', ML, y);
   y += 16;
 
   doc.text('Mit freundlichen Grüßen', ML, y);
