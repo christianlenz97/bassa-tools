@@ -18,6 +18,11 @@ var prevNummer  = $('#preview-nummer');
 var prevDatum   = $('#preview-datum');
 var prevDatumTop = $('#preview-datum-top');
 
+/* ===== Datepicker ===== */
+if (typeof BassaDatepicker !== 'undefined') {
+  new BassaDatepicker(elDatum, { defaultToday: true });
+}
+
 /* ===== Default date (today) ===== */
 (function setDefaults() {
   var d = new Date();
