@@ -12,6 +12,9 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/supabase.js"></script>
 </head>
 <body>
 
@@ -56,9 +59,8 @@
     </div>
 
     <div class="actions">
-      <button class="primary" onclick="doPrint()">🖨 Als PDF drucken</button>
       <button class="secondary" onclick="doDemo()">Demo-Daten</button>
-      <button class="ghost" onclick="doReset()">Zurücksetzen</button>
+      <button class="ghost" onclick="doReset()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M1 1v4h4"/><path d="M3 8a4.5 4.5 0 103.5-5.5L1 5"/></svg>Zurücksetzen</button>
     </div>
 
     <div class="hint">
@@ -80,7 +82,7 @@
           </div>
           <div class="subject-block">
             <div class="subject-label">Betreff:</div>
-            <div class="betreff" id="preview-betreff">Durchführung der beauftragten Arbeiten</div>
+            <div class="betreff" id="preview-betreff">[Betreff]</div>
           </div>
           <div class="content">
             <p>Sehr geehrte Damen und Herren,</p>

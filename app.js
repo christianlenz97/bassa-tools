@@ -63,13 +63,22 @@ document.getElementById('btnLogout').addEventListener('click', async function() 
 });
 
 /* ===== Auth State Change ===== */
+var initialAuthDone = false;
+
 sbOnAuthChange(function(event, session) {
-  if (event === 'SIGNED_IN' && session && session.user) {
-    currentUser = session.user;
-    showApp();
-    showDashboard();
-  } else if (event === 'SIGNED_OUT') {
+  if (event === 'SIGNED_OUT') {
     showLogin();
+    return;
+  }
+  if (session && session.user) {
+    currentUser = session.user;
+    if (!initialAuthDone) {
+      initialAuthDone = true;
+      showApp();
+      showDashboard();
+    } else {
+      showApp();
+    }
   }
 });
 
@@ -78,6 +87,7 @@ sbOnAuthChange(function(event, session) {
   var res = await sbGetSession();
   if (res.data && res.data.session && res.data.session.user) {
     currentUser = res.data.session.user;
+    initialAuthDone = true;
     showApp();
     showDashboard();
   } else {
@@ -754,6 +764,28 @@ document.getElementById('btnFotoExport').addEventListener('click', function() {
   } catch(e) {}
   if (frame && frame.contentWindow) {
     frame.contentWindow.postMessage({ action: 'exportPdf' }, '*');
+  }
+});
+
+/* ===== Mitteilung Topbar Buttons ===== */
+document.getElementById('btnMitteilungPdf').addEventListener('click', function() {
+  var frame = document.getElementById('mitteilungFrame');
+  try {
+    var win = frame.contentWindow;
+    if (win && typeof win.doPrint === 'function') { win.doPrint(); return; }
+  } catch(e) {}
+  if (frame && frame.contentWindow) {
+    frame.contentWindow.postMessage({ action: 'exportPdf' }, '*');
+  }
+});
+document.getElementById('btnMitteilungReset').addEventListener('click', function() {
+  var frame = document.getElementById('mitteilungFrame');
+  try {
+    var win = frame.contentWindow;
+    if (win && typeof win.doReset === 'function') { win.doReset(); return; }
+  } catch(e) {}
+  if (frame && frame.contentWindow) {
+    frame.contentWindow.postMessage({ action: 'reset' }, '*');
   }
 });
 

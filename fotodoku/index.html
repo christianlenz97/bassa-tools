@@ -50,25 +50,63 @@
   </div>
 
   <div class="wrap">
-    <div class="settings-bar">
-      <input class="input" id="docTitle" type="text" value="FOTODOKUMENTATION" />
-      <input class="input" id="customerName" type="text" placeholder="Kundenname" />
-      <input class="input" id="objectName" type="text" placeholder="Objekt / Adresse" />
-      <label class="datewrap"><span class="datelabel">Datum</span><input class="dateinput" id="docDate" type="text" placeholder="Datum" autocomplete="off" /></label>
-      <select class="select" id="layoutMode">
-        <option value="cover">Titelbild</option>
-        <option value="grid" selected>Ohne Titelbild</option>
-      </select>
-      <button class="btn danger icon-btn" id="clearBtn" type="button" title="Alles zurücksetzen">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M13 4v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4"/><line x1="7" y1="7" x2="7" y2="12"/><line x1="9" y1="7" x2="9" y2="12"/></svg>
-      </button>
+    <!-- ===== LEFT: Form ===== -->
+    <div class="panel form-panel">
+      <h1>Fotodokumentation</h1>
+      <p class="panel-sub">Bilder hochladen und Dokumentation erstellen.</p>
+
+      <div id="dropzone" class="dropzone">
+        <strong>📷 Bilder hierher ziehen</strong>
+        <span class="small">JPG, PNG – oder klicken zum Auswählen</span>
+        <div class="upload-row">
+          <label class="upload-btn" for="fileInput">Bilder auswählen</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="docTitle">1. Titel</label>
+        <input id="docTitle" type="text" value="FOTODOKUMENTATION" />
+      </div>
+      <div class="field">
+        <label for="customerName">2. Kundenname</label>
+        <input id="customerName" type="text" placeholder="Name / Firma" />
+      </div>
+      <div class="field">
+        <label for="objectName">3. Objekt / Adresse</label>
+        <input id="objectName" type="text" placeholder="Bauvorhaben / Adresse" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="docDate">4. Datum</label>
+          <input id="docDate" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="layoutMode">5. Layout</label>
+          <select id="layoutMode">
+            <option value="cover">Titelbild</option>
+            <option value="grid" selected>Ohne Titelbild</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="thumb-section" id="thumbSection">
+        <label class="section-label">Bilder</label>
+        <div class="thumb-list" id="thumbbar"></div>
+      </div>
+
+      <div class="actions">
+        <button class="ghost" id="clearBtn" type="button"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M1 1v4h4"/><path d="M3 8a4.5 4.5 0 103.5-5.5L1 5"/></svg>Zurücksetzen</button>
+      </div>
+
       <input class="hidden-input" id="fileInput" type="file" accept="image/*" multiple />
       <button class="hidden-input" id="pickBtn" type="button"></button>
       <button class="hidden-input" id="pdfBtn" type="button"></button>
     </div>
 
-    <div class="thumbbar" id="thumbbar"></div>
-    <div class="pages" id="pages"></div>
+    <!-- ===== RIGHT: Preview Panel ===== -->
+    <div class="panel preview-panel">
+      <div class="pages" id="pages"></div>
+    </div>
   </div>
 
 <script src="app.js"></script>

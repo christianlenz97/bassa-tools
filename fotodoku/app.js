@@ -147,12 +147,14 @@ var customerName = document.getElementById('customerName');
 var objectName = document.getElementById('objectName');
 var docDate = document.getElementById('docDate');
 var layoutMode = document.getElementById('layoutMode');
+var dropzone = document.getElementById('dropzone');
 
 if (typeof BassaDatepicker !== 'undefined') {
   new BassaDatepicker(docDate, { defaultToday: true });
 }
 var dragOverlay = document.getElementById('dragOverlay');
 var thumbbar = document.getElementById('thumbbar');
+var thumbSection = document.getElementById('thumbSection');
 var pages = document.getElementById('pages');
 
 var images = [];
@@ -171,6 +173,24 @@ var pickBtnTop = document.getElementById('pickBtnTop');
 var pdfBtnTop = document.getElementById('pdfBtnTop');
 if (pickBtnTop) pickBtnTop.addEventListener('click', function() { fileInput.click(); });
 if (pdfBtnTop) pdfBtnTop.addEventListener('click', function() { saveAsPdf(); });
+
+if (dropzone) {
+  dropzone.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'LABEL') fileInput.click();
+  });
+  dropzone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', function() {
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+}
 
 clearBtn.addEventListener('click', async function() {
   if (!window.confirm('Wirklich ALLE Daten und Bilder löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')) return;
@@ -339,17 +359,23 @@ function removeImage(idx) {
 
 function renderThumbs() {
   thumbbar.innerHTML = '';
+  if (thumbSection) thumbSection.style.display = images.length ? '' : 'none';
   images.forEach(function(img, idx) {
-    var d = document.createElement('div');
-    d.className = 'thumb';
-    d.title = (idx + 1) + ': ' + img.name;
-    d.innerHTML = '<img src="' + img.src + '" alt="">' +
-      '<button class="thumb-remove" type="button" data-idx="' + idx + '">&times;</button>';
-    d.querySelector('.thumb-remove').addEventListener('click', function(e) {
-      e.stopPropagation();
+    var row = document.createElement('div');
+    row.className = 'thumb-row';
+    var captionVal = escapeHtml(img.caption || '');
+    row.innerHTML =
+      '<span class="thumb-num">' + (idx + 1) + '</span>' +
+      '<img class="thumb-img" src="' + img.src + '" alt="">' +
+      '<input class="thumb-caption" type="text" placeholder="Beschreibung..." value="' + captionVal + '" />' +
+      '<button class="thumb-del" type="button" title="Entfernen">&times;</button>';
+    row.querySelector('.thumb-caption').addEventListener('input', function(e) {
+      onCaptionInput(idx, e.target.value);
+    });
+    row.querySelector('.thumb-del').addEventListener('click', function() {
       removeImage(idx);
     });
-    thumbbar.appendChild(d);
+    thumbbar.appendChild(row);
   });
 }
 
@@ -360,7 +386,7 @@ function pageNumber(n) {
   return '<div class="page-number">Seite ' + n + '</div>';
 }
 
-function createPageWrap(pageElement, pageNo, isGridPage, captionInputsHtml) {
+function createPageWrap(pageElement, pageNo, isGridPage) {
   var wrap = document.createElement('div');
   wrap.className = 'page-wrap';
   if (isGridPage && deletedGridPages.has(pageNo)) wrap.classList.add('deleted');
@@ -383,14 +409,6 @@ function createPageWrap(pageElement, pageNo, isGridPage, captionInputsHtml) {
 
   wrap.appendChild(actions);
   wrap.appendChild(pageElement);
-
-  if (captionInputsHtml) {
-    var captionDiv = document.createElement('div');
-    captionDiv.className = 'caption-inputs';
-    captionDiv.innerHTML = captionInputsHtml;
-    wrap.appendChild(captionDiv);
-  }
-
   return wrap;
 }
 
@@ -410,23 +428,10 @@ function renderSlot(item, label, globalIndex) {
     '</div>';
 }
 
-function buildCaptionInputs(indices) {
-  return indices.map(function(globalIdx) {
-    var img = images[globalIdx];
-    if (!img) return '';
-    var val = escapeHtml(img.caption || '');
-    return '<div class="caption-field">' +
-      '<label>Bild ' + (globalIdx + 1) + '</label>' +
-      '<input type="text" placeholder="Beschreibung..." value="' + val + '" oninput="onCaptionInput(' + globalIdx + ', this.value)" />' +
-      '</div>';
-  }).join('');
-}
-
 function renderFirstPage() {
   var mode = layoutMode.value || 'grid';
   var page = document.createElement('div');
   page.className = 'page';
-  var captionHtml = '';
 
   if (mode === 'cover') {
     page.innerHTML =
@@ -439,7 +444,6 @@ function renderFirstPage() {
       FOOTER_HTML +
       pageNumber(1);
   } else {
-    var indices = [];
     page.innerHTML =
       HEADER_HTML +
       '<div class="title">' + escapeHtml(docTitle.value || 'FOTODOKUMENTATION') +
@@ -447,36 +451,31 @@ function renderFirstPage() {
       '</div>' +
       '<div class="grid-cover">' +
         [0,1,2,3].map(function(i) {
-          if (images[i]) indices.push(i);
           return renderSlot(images[i], 'Bild ' + (i + 1), i);
         }).join('') +
       '</div>' +
       '<div class="docdate">' + (docDate.value ? formatDate(docDate.value) : '') + '</div>' +
       FOOTER_HTML +
       pageNumber(1);
-    captionHtml = buildCaptionInputs(indices);
   }
 
-  return createPageWrap(page, 1, false, captionHtml);
+  return createPageWrap(page, 1, false);
 }
 
 function renderGridPage(chunk, pageNo, firstImageNumber, globalStartIdx) {
   var page = document.createElement('div');
   page.className = 'page';
-  var indices = [];
   page.innerHTML =
     '<div class="grid-standard">' +
       [0,1,2,3].map(function(i) {
         var globalIdx = globalStartIdx + i;
         var item = chunk[i];
-        if (item) indices.push(globalIdx);
         return renderSlot(item, 'Bild ' + (firstImageNumber + i), item ? globalIdx : -1);
       }).join('') +
     '</div>' +
     FOOTER_HTML +
     pageNumber(pageNo);
-  var captionHtml = buildCaptionInputs(indices);
-  return createPageWrap(page, pageNo, true, captionHtml);
+  return createPageWrap(page, pageNo, true);
 }
 
 function render() {

@@ -58,11 +58,9 @@ async function saveAsPdf() {
   var originalText = pdfBtn.textContent;
   pdfBtn.classList.add('loading');
 
-  var settingsBar = document.querySelector('.settings-bar');
+  var formPanel = document.querySelector('.form-panel');
   var topbarEl = document.getElementById('fotodokuTopbar');
-  var thumbbarEl = document.getElementById('thumbbar');
   var dragOv = document.getElementById('dragOverlay');
-  var captionInputs = document.querySelectorAll('.caption-inputs');
   var slotRemoves = document.querySelectorAll('.slot-remove');
   var pageNodes = Array.from(document.querySelectorAll('.page-wrap:not(.deleted) .page'));
 
@@ -72,20 +70,32 @@ async function saveAsPdf() {
     return;
   }
 
+  var wrapEl = document.querySelector('.wrap');
+  var previewPanel = document.querySelector('.preview-panel');
+
   var previous = {
-    settingsBar: settingsBar ? settingsBar.style.display : '',
+    formPanel: formPanel ? formPanel.style.display : '',
     topbar: topbarEl ? topbarEl.style.display : '',
-    thumbbar: thumbbarEl ? thumbbarEl.style.display : '',
     dragOv: dragOv ? dragOv.style.display : '',
-    bodyBg: document.body.style.background
+    bodyBg: document.body.style.background,
+    wrapDisplay: wrapEl ? wrapEl.style.display : '',
+    previewShadow: previewPanel ? previewPanel.style.boxShadow : '',
+    previewBg: previewPanel ? previewPanel.style.background : '',
+    previewPad: previewPanel ? previewPanel.style.padding : '',
+    previewRadius: previewPanel ? previewPanel.style.borderRadius : ''
   };
 
-  if (settingsBar) settingsBar.style.display = 'none';
+  if (formPanel) formPanel.style.display = 'none';
   if (topbarEl) topbarEl.style.display = 'none';
-  if (thumbbarEl) thumbbarEl.style.display = 'none';
   if (dragOv) dragOv.style.display = 'none';
+  if (wrapEl) wrapEl.style.display = 'block';
+  if (previewPanel) {
+    previewPanel.style.boxShadow = 'none';
+    previewPanel.style.background = 'transparent';
+    previewPanel.style.padding = '0';
+    previewPanel.style.borderRadius = '0';
+  }
   document.body.style.background = '#ffffff';
-  captionInputs.forEach(function(el) { el.style.display = 'none'; });
   slotRemoves.forEach(function(el) { el.style.display = 'none'; });
 
   var allPages = document.querySelectorAll('.page');
@@ -136,12 +146,17 @@ async function saveAsPdf() {
       p.style.transform = savedTransforms[idx];
       p.style.marginBottom = '';
     });
-    captionInputs.forEach(function(el) { el.style.display = ''; });
     slotRemoves.forEach(function(el) { el.style.display = ''; });
-    if (settingsBar) settingsBar.style.display = previous.settingsBar;
+    if (formPanel) formPanel.style.display = previous.formPanel;
     if (topbarEl) topbarEl.style.display = previous.topbar;
-    if (thumbbarEl) thumbbarEl.style.display = previous.thumbbar;
     if (dragOv) dragOv.style.display = previous.dragOv;
+    if (wrapEl) wrapEl.style.display = previous.wrapDisplay;
+    if (previewPanel) {
+      previewPanel.style.boxShadow = previous.previewShadow;
+      previewPanel.style.background = previous.previewBg;
+      previewPanel.style.padding = previous.previewPad;
+      previewPanel.style.borderRadius = previous.previewRadius;
+    }
     document.body.style.background = previous.bodyBg;
     pdfBtn.textContent = originalText;
     pdfBtn.classList.remove('loading');

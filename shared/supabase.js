@@ -31,6 +31,11 @@ function sbUserId() {
   return null;
 }
 
+/* ===== Edge Function Helper ===== */
+function sbCallFunction(name, body) {
+  return supabase.functions.invoke(name, { body: body });
+}
+
 /* ===== Projects DB Helpers ===== */
 function sbGetAllProjects() {
   return supabase

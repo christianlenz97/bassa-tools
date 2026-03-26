@@ -180,6 +180,7 @@ textarea.betreff-input { min-height: 52px; resize: vertical; }
 .recipient {
   white-space: pre-line;
   font-size: 12.5pt;
+  font-weight: 700;
   line-height: 1.45;
   max-width: 92mm;
 }
