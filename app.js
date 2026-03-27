@@ -130,10 +130,10 @@ function setTopbarContext(ctx) {
   document.getElementById('ctxFotodoku').style.display = ctx === 'fotodoku' ? '' : 'none';
   document.getElementById('ctxMitteilung').style.display = ctx === 'mitteilung' ? '' : 'none';
   var burger = document.getElementById('btnBurger');
-  if (ctx === 'dashboard') {
-    burger.classList.remove('hide-mobile');
-  } else {
+  if (ctx === 'detail') {
     burger.classList.add('hide-mobile');
+  } else {
+    burger.classList.remove('hide-mobile');
   }
 }
 

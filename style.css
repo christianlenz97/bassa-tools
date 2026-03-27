@@ -221,6 +221,10 @@ body {
 }
 @media (min-width: 769px) {
   .btn-back-fotodoku { display: none; }
+  #btnBackMitteilung { display: none; }
+}
+@media (max-width: 768px) {
+  #btnBackFoto, #btnBackMitteilung { display: none; }
 }
 .btn-fab-danger {
   background: #fef2f2 !important;
